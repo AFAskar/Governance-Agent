@@ -18,7 +18,7 @@ coverage/
 out/
 
 # production
-apps/web/build
+build/
 
 # misc
 .DS_Store
@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# ========= python =========
+# Python-generated files
+__pycache__/
+*.py[oc]
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
