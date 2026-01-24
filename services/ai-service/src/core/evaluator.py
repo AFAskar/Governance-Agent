@@ -59,7 +59,7 @@ CONTROLS REFERENCE (for context):
 Now evaluate the applicant documents against the framework and provide a comprehensive evaluation report."""
 
     response = client.chat.completions.create(
-        model="deepseek/deepseek-r1",
+        model="openai/gpt-4.1",
         messages=[
             {
                 "role": "system",
@@ -74,7 +74,22 @@ Now evaluate the applicant documents against the framework and provide a compreh
         response_format={"type": "json_object"}
     )
     
+    # Check if response has content
+    if not response.choices or not response.choices[0].message:
+        raise ValueError(
+            f"API returned empty response. Response object: {response}, "
+            f"Choices: {getattr(response, 'choices', None)}"
+        )
+    
     result_text = response.choices[0].message.content
+    
+    # Check if result_text is None or empty
+    if not result_text or not result_text.strip():
+        raise ValueError(
+            f"API returned empty content. Response: {response}, "
+            f"Content: {repr(result_text)}. "
+            f"This may indicate an API error, rate limit, or model issue."
+        )
     
     # Parse JSON response, handle markdown code blocks if present
     try:

@@ -16,55 +16,58 @@ def generate_evaluation_prompt(controls_json: Dict[str, Any], framework_name: st
     """
     Generate an evaluation prompt from extracted controls JSON.
     
-    The prompt will contain framework logic and clear evaluation criteria
-    that can be used directly for applicant evaluation.
-    
     Args:
-        controls_json: Dictionary containing extracted controls, metadata, and filters
+        controls_json: Dictionary containing extracted controls
         framework_name: Name of the framework
         
     Returns:
-        Evaluation prompt string ready to use for applicant evaluation
+        Evaluation prompt string
     """
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
-        raise ValueError("OPENROUTER_API_KEY not found in environment variables")
+        raise ValueError("OPENROUTER_API_KEY not found")
     
     client = OpenAI(
         api_key=api_key,
         base_url="https://openrouter.ai/api/v1"
     )
     
-    # Convert controls JSON to string for the prompt
+    # Convert controls JSON to string
     controls_str = json.dumps(controls_json, indent=2, ensure_ascii=False)
+    if len(controls_str) > 50000:
+        controls_str = controls_str[:50000] + "\n\n[Data truncated...]"
     
-    generation_prompt = f"""You are an expert in compliance evaluation. Based on the extracted compliance framework controls below, 
-create a comprehensive evaluation prompt that will be used to evaluate applicant documents against this framework.
+    generation_prompt = f"""
+### ROLE
+Prompt Engineer & Compliance Auditor.
 
-Framework Name: {framework_name}
+### TASK
+Using the provided Master JSON containing multiple compliance frameworks, generate a sophisticated **System Prompt** for an "AI Compliance Auditor."
 
-The evaluation prompt should:
-1. Clearly explain the framework and its purpose
-2. List all controls/rules/criteria that need to be evaluated
-3. Provide clear evaluation criteria for each control
-4. Specify how to score or assess compliance (e.g., compliant/non-compliant, or scoring scale)
-5. Include instructions for handling multilingual documents (Arabic/English)
-6. Be structured so it can be used directly with an LLM to evaluate applicant documents
-7. Include instructions on how to format the evaluation report
+### SYSTEM PROMPT REQUIREMENTS
+The generated prompt must instruct the AI Auditor to:
+1. **Role Adoption:** Act as a lead auditor for Saudi National Data Governance (NDMO) and Operational Excellence (SDAIA).
+2. **Cross-Framework Mapping:** When evaluating a document, identify which controls from WHICH framework apply (e.g., mapping user evidence to both a Policy and an OE Metric).
+3. **Evidence Analysis Logic:**
+    - Step A: Extract claims from the applicant's document.
+    - Step B: Compare claims against the 'Requirements' and 'Thresholds' in the Master JSON.
+    - Step C: Check for specific 'Evidence Suggested' artifacts.
+4. **Scoring Protocol:** Apply the strict 0-5 scale for metrics and binary (Compliant/Non-Compliant) for policies as defined in the source data.
+5. **Gap Analysis:** For every non-compliant item, specify exactly what is missing based on the 'Semantic Intent'.
 
-The prompt should be self-contained and can be used independently to evaluate any applicant's documents.
-
-Extracted Controls JSON:
+### SOURCE FRAMEWORKS (JSON):
 {controls_str}
 
-Generate the evaluation prompt now. The prompt should be clear, comprehensive, and ready to use."""
+### FINAL OUTPUT
+Generate the full System Prompt text. The prompt should be optimized for a model with a large context window and include instructions on generating a 'Compliance Gap Report' table at the end of every evaluation.
+"""
 
     response = client.chat.completions.create(
-        model="deepseek/deepseek-r1",
+        model="openai/gpt-4.1",
         messages=[
             {
                 "role": "system",
-                "content": "You are an expert in creating evaluation prompts for compliance frameworks. Create clear, comprehensive prompts that can be used to evaluate documents against compliance standards."
+                "content": "You are a Prompt Engineer & Compliance Auditor. Generate sophisticated system prompts for AI Compliance Auditors."
             },
             {
                 "role": "user",
@@ -74,4 +77,11 @@ Generate the evaluation prompt now. The prompt should be clear, comprehensive, a
         temperature=0.3
     )
     
-    return response.choices[0].message.content.strip()
+    result_text = response.choices[0].message.content.strip()
+    print("\n" + "="*60)
+    print("PROMPT GENERATION RESPONSE:")
+    print("="*60)
+    print(result_text)
+    print("="*60 + "\n")
+    
+    return result_text
