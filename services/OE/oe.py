@@ -52,13 +52,13 @@ def calculate_Adherence_to_the_Data_Sharing_Policy(
     Returns:
         Percentage
     """
-    API_Weights = [0.8, 0.2]
+    API_WEIGHTS = [0.8, 0.2]
 
     c = 1 if is_classified else 0
     num_Certified_attribs = len(Certified_attribs)
     num_total_attribs = len(total_attribs)
     result = (
-        API_Weights[0] * num_Certified_attribs / num_total_attribs + API_Weights[1] * c
+        API_WEIGHTS[0] * num_Certified_attribs / num_total_attribs + API_WEIGHTS[1] * c
     ) * 100
     return get_high_good_percentage_scale(result)
 
