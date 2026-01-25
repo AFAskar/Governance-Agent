@@ -47,7 +47,7 @@ def get_day_low_good_scale(day_num: int | float) -> SCALE:
 
 def calculate_Adherence_to_the_Data_Sharing_Policy(
     Certified_attribs, total_attribs, is_classified
-) -> SCALE:
+) -> int:
     """
     Returns:
         Percentage
@@ -60,22 +60,47 @@ def calculate_Adherence_to_the_Data_Sharing_Policy(
     result = (
         API_WEIGHTS[0] * num_Certified_attribs / num_total_attribs + API_WEIGHTS[1] * c
     ) * 100
-    return get_high_good_percentage_scale(result)
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
 
 
 def calculate_Systems_integrated_with_NDL(
     num_integrated: int, total_systems: int
-) -> SCALE:
+) -> int:
     result = num_integrated / total_systems * 100
-    return get_high_good_percentage_scale(result)
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
 
 
 def Data_sharing_agreement_processing(
     days_taken_for_approve_deny: int, total_agreements: int
-) -> SCALE:
+) -> int:
     result = days_taken_for_approve_deny / total_agreements
 
-    return get_day_low_good_scale(result)
+    output = get_day_low_good_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def calculate_domain_one(
+    Certified_attribs,
+    total_attribs,
+    num_integrated,
+    total_systems,
+    days_taken_for_approve_deny,
+    total_agreements,
+    is_classified=False,
+):
+    return {
+        "DSI.OE.01": calculate_Adherence_to_the_Data_Sharing_Policy(
+            Certified_attribs, total_attribs, is_classified
+        ),
+        "DSI.OE.02": calculate_Systems_integrated_with_NDL(
+            num_integrated, total_systems
+        ),
+        "DSI.OE.03": Data_sharing_agreement_processing(
+            days_taken_for_approve_deny, total_agreements
+        ),
+    }
 
 
 def final_OE_metric(
@@ -86,23 +111,15 @@ def final_OE_metric(
     total_attribs,
     Certified_attribs,
 ):
-    scores = []
-    Data_sharing_agreement_val = Data_sharing_agreement_processing(
-        days_taken_for_approve_deny, total_agreements
+    domain_1 = calculate_domain_one(
+        Certified_attribs,
+        total_attribs,
+        num_integrated,
+        total_systems,
+        days_taken_for_approve_deny,
+        total_agreements,
     )
-    scores.append(Data_sharing_agreement_val)
-    Systems_integrated_with_NDL = calculate_Systems_integrated_with_NDL(
-        num_integrated, total_systems
-    )
-    scores.append(Systems_integrated_with_NDL)
-    Adherence_to_the_Data_Sharing_Policy = (
-        calculate_Adherence_to_the_Data_Sharing_Policy(
-            Certified_attribs=Certified_attribs,
-            total_attribs=total_attribs,
-            is_classified=False,
-        )
-    )
-    scores.append(Adherence_to_the_Data_Sharing_Policy)
+    scores = list(domain_1.values())
     oe = 0
     for score, weight in zip(scores, WEIGHTS):
         oe += score * weight
