@@ -1,17 +1,21 @@
 """
 Gemma Embedder Module
-Uses Google EmbeddingGemma 300M model for generating embeddings
-This is specifically designed for embeddings (not text generation)
-Supports HuggingFace token authentication for gated models
-
+Uses Google EmbeddingGemma 300M model for generating embeddings.
+Supports HuggingFace token authentication for gated models.
 Model: https://huggingface.co/google/embeddinggemma-300m
 """
 
+import os
+
+os.environ["HF_HUB_OFFLINE"] = "1"  # Set to "0" for first-time model download.
+
+import torch
 from sentence_transformers import SentenceTransformer
 from typing import List, Optional
-import os
-import torch
+
 from huggingface_hub import login
+
+_LOGIN_DONE = False
 
 
 class GemmaEmbedder:
@@ -41,13 +45,18 @@ class GemmaEmbedder:
     
     def _load_model(self):
         """Load the EmbeddingGemma model using sentence-transformers."""
-        if self.token:
+        global _LOGIN_DONE
+        offline = os.getenv("HF_HUB_OFFLINE", "").strip().lower() == "1"
+        local_files_only = offline
+
+        if not offline and self.token and not _LOGIN_DONE:
             login(token=self.token)
-        
-        model_kwargs = {}
-        if self.token:
+            _LOGIN_DONE = True
+
+        model_kwargs: dict = {"local_files_only": local_files_only}
+        if self.token and not offline:
             model_kwargs["token"] = self.token
-        
+
         try:
             self.model = SentenceTransformer(
                 self.model_name,

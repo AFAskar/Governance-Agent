@@ -1,11 +1,15 @@
 """
-Compliance Framework Evaluation System
+Compliance Framework Extraction System
 """
 
 __version__ = "0.1.0"
 
 # Core exports
-from .core import evaluate_applicant, extract_controls_from_framework
+from .core import (
+    evaluate_applicant,
+    extract_controls_from_framework,
+    extract_controls_from_pdfs,
+)
 
 # Embedding exports - LAZY LOADED to avoid slow startup
 # These imports heavy ML libraries (sentence-transformers, sklearn, etc.)
@@ -18,36 +22,48 @@ from .core import evaluate_applicant, extract_controls_from_framework
 
 # Processing exports
 from .processing import (
-    extract_text_from_pdf, 
-    chunk_text, 
-    chunk_text_by_sentences
+    extract_text_from_pdf,
+    chunk_text,
+    chunk_text_by_sentences,
 )
-
-# Prompt exports
-from .prompts import generate_evaluation_prompt
 
 # Utils exports
 from .utils import (
-    save_framework_data, 
-    load_framework_data, 
-    list_saved_frameworks,
-    save_evaluation_report,
-    get_input_paths
+    save_extraction_json,
+    get_input_paths,
+    list_framework_jsons,
+    get_vector_db_pdf_paths,
+)
+
+# RAG exports (index JSON + PDF, retrieve by control ID; agent-tool friendly)
+from .rag import (
+    index_framework,
+    retrieve_control_details,
+    RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA,
+    get_shared_embedder,
 )
 
 __all__ = [
     # Core
-    "evaluate_applicant", "extract_controls_from_framework",
+    "evaluate_applicant",
+    "extract_controls_from_framework",
+    "extract_controls_from_pdfs",
     # Embeddings - Note: Import directly from src.embeddings when needed
     # "GemmaEmbedder", "load_gemma_embedder",
     # "initialize_qdrant", "add_documents", "search_similar",
     # "HaystackQdrantRetriever", "create_retrieval_pipeline",
     # Processing
     "extract_text_from_pdf",
-    "chunk_text", "chunk_text_by_sentences",
-    # Prompts
-    "generate_evaluation_prompt",
+    "chunk_text",
+    "chunk_text_by_sentences",
     # Utils
-    "save_framework_data", "load_framework_data", "list_saved_frameworks",
-    "save_evaluation_report", "get_input_paths"
+    "save_extraction_json",
+    "get_input_paths",
+    "list_framework_jsons",
+    "get_vector_db_pdf_paths",
+    # RAG
+    "index_framework",
+    "retrieve_control_details",
+    "RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA",
+    "get_shared_embedder",
 ]

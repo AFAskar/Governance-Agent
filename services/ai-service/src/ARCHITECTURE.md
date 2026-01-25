@@ -1,40 +1,62 @@
 # Code Architecture Documentation
 
-This document explains the codebase structure and where to find specific functionality when making adjustments.
+This document explains the codebase structure and serves as the **canonical guide** for future edits. Use it to locate functionality and understand data flows before modifying code.
+
+---
 
 ## Overview
 
-The Compliance Framework Evaluation System is organized into logical modules that handle different aspects of the pipeline:
+The **Compliance Framework Extraction & RAG System** has two main pipelines:
 
-1. **Core** - Business logic for framework extraction and evaluation
-2. **Processing** - Document parsing and text chunking
-3. **Embeddings** - Vector embeddings and database operations
-4. **Prompts** - LLM prompt generation
-5. **Utils** - File I/O and data management
+1. **Extraction** – Extract controls from framework PDFs via LLM, save one JSON per PDF. No composition or evaluation prompt generation.
+2. **RAG** – Hybrid indexing (JSON control cards + PDF chunks) into Qdrant, and retrieval by control ID (agent-tool friendly).
+
+**Modules**:
+
+| Module | Purpose |
+|--------|---------|
+| **Core** | Extraction (LLM), retries, and evaluation |
+| **Processing** | PDF parsing, text chunking |
+| **Embeddings** | Gemma embedder, Qdrant (local/remote) |
+| **RAG** | Index framework (JSON + PDF), retrieve by control ID |
+| **Utils** | Per-PDF JSON save/load, input paths, vector_db PDF resolution |
+
+**Removed / obsolete**: `prompts/` directory, `compose_master_framework`, `save_framework_data`, `load_framework_data`, `list_saved_frameworks`, `save_evaluation_report`, `generate_evaluation_prompt`. Section organization and multi-PDF validation flows are no longer used.
+
+---
 
 ## Directory Structure
 
 ```
 src/
-├── core/                    # Core business logic
-│   ├── evaluator.py        # Document evaluation against frameworks
-│   └── framework_extractor.py  # Extract controls from framework PDFs
+├── core/
+│   ├── evaluator.py           # Evaluate applicant docs vs framework (uses external prompt)
+│   ├── framework_extractor.py # LLM extraction: PDF text → controls JSON
+│   └── framework_consolidator.py # Parallel PDF extraction + retry on empty
 │
-├── processing/             # Document processing pipeline
-│   ├── pdf_parser.py       # PDF text extraction
-│   └── text_chunker.py     # Text chunking for embeddings
+├── processing/
+│   ├── pdf_parser.py          # extract_text_from_pdf
+│   └── text_chunker.py        # chunk_text, chunk_text_by_sentences
 │
-├── embeddings/             # Vector operations and storage
-│   ├── gemma_embedder.py   # Embedding model wrapper
-│   ├── qdrant_manager.py   # Vector database operations
-│   └── haystack_retriever.py  # Haystack integration
+├── embeddings/
+│   ├── gemma_embedder.py      # GemmaEmbedder, load_gemma_embedder (HF_HUB_OFFLINE)
+│   ├── qdrant_manager.py      # Qdrant CRUD, fetch_by_filter, search_similar_filtered
+│   └── haystack_retriever.py  # Haystack + Qdrant (optional)
 │
-├── prompts/                # Prompt management
-│   └── prompt_generator.py # Generate evaluation prompts
+├── rag/
+│   ├── _shared.py             # get_shared_embedder() — singleton per process
+│   ├── ingestion.py           # index_framework (JSON + PDF → Qdrant)
+│   └── retrieval.py           # retrieve_control_details, RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA
 │
-└── utils/                  # Utilities and helpers
-    └── framework_utils.py  # Framework data save/load
+├── utils/
+│   └── framework_utils.py     # save_extraction_json, get_input_paths, list_framework_jsons,
+│                              # get_vector_db_pdf_paths
+│
+├── __init__.py                # Package exports
+└── ARCHITECTURE.md            # This file
 ```
+
+**Entry point**: `main.py` (project root) — `setup_framework()`, `get_input_paths()`.
 
 ---
 
@@ -42,503 +64,345 @@ src/
 
 ### Core (`src/core/`)
 
-**Purpose**: Contains the main business logic for framework extraction and document evaluation.
-
 #### `framework_extractor.py`
-**What it does**: Extracts compliance controls from framework PDF text using LLM.
 
-**Key Functions**:
-- `extract_controls_from_framework(pdf_text, framework_name)` - Main extraction function
+**Purpose**: Extract compliance controls from raw PDF text using LLM (OpenRouter).
 
-**When to modify**:
-- To change how controls are extracted
-- To adjust the extraction prompt structure
-- To modify the output JSON schema
-- To change the LLM model or parameters
+**Key function**: `extract_controls_from_framework(pdf_text, framework_name, use_fallback_prompt=False) → dict`
 
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
-
-#### `framework_organizer.py`
-**What it does**: Organizes multiple PDFs into sections using LLM content analysis and validates framework completeness.
-
-**Key Functions**:
-- `organize_pdfs_by_section(pdf_paths_list, framework_name)` - Analyzes PDF content to determine section names (part1, part2, rubric, etc.)
-- `validate_framework_sections(organized_sections, framework_name)` - Validates sections for completeness, quality, keywords, and control patterns
+- Returns `{"framework_name": str, "controls": [ {...}, ... ]}`.
+- Each control has **exactly**: `id`, `description`, `calculation`, `threshold`, `scale` (strict JSON schema).
+- `use_fallback_prompt=True`: stricter prompt that forbids empty controls (used for retries).
 
 **When to modify**:
-- To change section identification logic
-- To adjust validation criteria
-- To modify section naming conventions
-- To add custom validation checks
+- Change extraction prompt or JSON schema.
+- Switch LLM model (currently `openai/gpt-4.1` via OpenRouter).
+- Adjust temperature (0.3 normal, 0.5 fallback) or response handling.
 
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
+**Dependencies**: `openai`, `python-dotenv`. Requires `OPENROUTER_API_KEY`.
+
+---
 
 #### `framework_consolidator.py`
-**What it does**: Extracts controls from each section and creates a master evaluation prompt consolidating all sections.
 
-**Key Functions**:
-- `extract_controls_from_sections(organized_sections, framework_name)` - Extracts controls from each section individually
-- `create_master_prompt(section_controls, organized_sections, framework_name)` - Consolidates all sections into unified master prompt
+**Purpose**: Run extraction over multiple PDFs in parallel; retry with fallback prompt if a PDF yields no controls.
 
-**When to modify**:
-- To change master prompt structure
-- To adjust consolidation logic
-- To modify how controls are combined
-- To change prompt formatting
+**Key function**: `extract_controls_from_pdfs(pdf_paths_list, framework_name) → list[list[dict]]`
 
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
-
-#### `framework_organizer.py`
-**What it does**: Organizes multiple PDFs into sections using LLM content analysis and validates framework completeness.
-
-**Key Functions**:
-- `organize_pdfs_by_section(pdf_paths_list, framework_name)` - Analyzes PDF content to determine section names (part1, part2, rubric, etc.)
-- `validate_framework_sections(organized_sections, framework_name)` - Validates sections for completeness, quality, keywords, and control patterns
+- One LLM call per PDF. Uses `ThreadPoolExecutor`.
+- If a PDF returns empty controls, retries up to `MAX_RETRIES` (2) with `use_fallback_prompt=True`.
 
 **When to modify**:
-- To change section identification logic
-- To adjust validation criteria
-- To modify section naming conventions
-- To add custom validation checks
+- Change parallelism (e.g. `max_workers`).
+- Adjust retry count or retry logic.
 
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
+**Dependencies**: `framework_extractor`, `processing.extract_text_from_pdf`.
 
-#### `framework_consolidator.py`
-**What it does**: Extracts controls from each section and creates a master evaluation prompt consolidating all sections.
-
-**Key Functions**:
-- `extract_controls_from_sections(organized_sections, framework_name)` - Extracts controls from each section individually
-- `create_master_prompt(section_controls, organized_sections, framework_name)` - Consolidates all sections into unified master prompt
-
-**When to modify**:
-- To change master prompt structure
-- To adjust consolidation logic
-- To modify how controls are combined
-- To change prompt formatting
-
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
+---
 
 #### `evaluator.py`
-**What it does**: Evaluates applicant documents against saved frameworks using LLM.
 
-**Key Functions**:
-- `evaluate_applicant(applicant_docs, evaluation_prompt, controls_json)` - Main evaluation function
+**Purpose**: Evaluate applicant documents against a framework using LLM.
+
+**Key function**: `evaluate_applicant(applicant_docs, evaluation_prompt, controls_json) → dict`
+
+- Uses **externally provided** `evaluation_prompt` and `controls_json`. The extraction pipeline does **not** generate evaluation prompts.
 
 **When to modify**:
-- To change evaluation logic
-- To adjust evaluation prompt format
-- To modify the evaluation report structure
-- To change the LLM model or temperature settings
+- Change evaluation logic or report structure.
+- Switch LLM or parameters.
 
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
+**Dependencies**: OpenAI API, `OPENAI_API_KEY`.
 
 ---
 
 ### Processing (`src/processing/`)
 
-**Purpose**: Handles document parsing and text preparation for further processing.
-
 #### `pdf_parser.py`
-**What it does**: Extracts text from PDF files with multilingual support (Arabic/English).
 
-**Key Functions**:
-- `extract_text_from_pdf(pdf_path)` - Extracts all text from a PDF file
-  - Used individually for each PDF when processing multiple files
+**Key function**: `extract_text_from_pdf(pdf_path) → str`
 
-**When to modify**:
-- To change PDF extraction library (currently uses `pdfplumber`)
-- To add support for other file formats (Word, images, etc.)
-- To improve multilingual text extraction
-- To add OCR capabilities
+**When to modify**: Change PDF library (`pdfplumber`), add formats, OCR.
 
-**Dependencies**: `pdfplumber`
+---
 
 #### `text_chunker.py`
-**What it does**: Splits text into chunks with overlap for vector database storage.
 
-**Key Functions**:
-- `chunk_text(text, chunk_size, overlap, framework_name)` - Main chunking function
-- `chunk_text_by_sentences(text, sentences_per_chunk)` - Alternative sentence-based chunking
-- `_is_valid_chunk(text)` - Validates chunks (filters formatting artifacts)
+**Key functions**:
+- `chunk_text(text, chunk_size, overlap, framework_name, ...) → list[dict]`
+- `chunk_text_by_sentences(text, sentences_per_chunk, ...) → list[dict]`
 
-**When to modify**:
-- To adjust chunk size or overlap parameters
-- To change chunking strategy (by paragraphs, sections, etc.)
-- To improve semantic boundary detection
-- To modify chunk validation logic
-- To add custom chunking algorithms
+Chunks include `text`, `metadata` (e.g. `length`). Used by RAG ingestion for PDF chunking.
 
-**Dependencies**: None (pure Python)
+**When to modify**: Chunk size, overlap, or chunking strategy.
 
 ---
 
 ### Embeddings (`src/embeddings/`)
 
-**Purpose**: Handles embedding generation and vector database operations.
-
 #### `gemma_embedder.py`
-**What it does**: Wraps Google EmbeddingGemma 300M model for generating embeddings.
 
-**Key Classes**:
-- `GemmaEmbedder` - Main embedder class
+**Purpose**: Embedding model wrapper (Google EmbeddingGemma 300M via `sentence-transformers`).
 
-**Key Methods**:
-- `embed_text(text)` - Generate embedding for single text
-- `embed_batch(texts, batch_size)` - Generate embeddings for multiple texts
-- `get_embedding_dim()` - Get embedding dimension
+**Important**: At module load, **before** any HuggingFace imports:
 
-**When to modify**:
-- To change the embedding model (e.g., switch to different HuggingFace model)
-- To adjust batch processing parameters
-- To add GPU/CPU optimization
-- To change authentication method
-- To add caching for embeddings
+```python
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"  # Set to "0" for first-time model download.
+```
 
-**Dependencies**: `sentence-transformers`, `torch`, `huggingface_hub`
+- **`"1"`** (default): Load from cache only — fast restarts, no hub calls.
+- **`"0"`**: Use hub (e.g. first-time download). Change this line in the script when needed, then set back to `"1"`.
 
-#### `qdrant_manager.py`
-**What it does**: Manages Qdrant vector database operations (local or remote).
-
-**Key Functions**:
-- `initialize_qdrant(collection_name, vector_size, path, url)` - Initialize client and create collection
-- `add_documents(client, collection_name, documents, embeddings)` - Store documents with embeddings
-- `search_similar(client, collection_name, query_embedding, top_k)` - Search for similar documents
-- `create_collection(client, collection_name, vector_size)` - Create new collection
-- `delete_collection(client, collection_name)` - Delete collection
+**Key**: `GemmaEmbedder`, `load_gemma_embedder(model_name, device, token)`. Methods: `embed_text`, `embed_batch`, `get_embedding_dim`.
 
 **When to modify**:
-- To change vector database (e.g., switch to Pinecone, Weaviate)
-- To adjust batch size for document insertion
-- To modify search parameters (distance metric, filters)
-- To add collection management features
-- To change storage location or configuration
+- Change default model or device.
+- Adjust batch size or auth (HF token).
+- **Keep** `HF_HUB_OFFLINE` logic; update comment if behaviour changes.
 
-**Dependencies**: `qdrant-client`
-
-#### `haystack_retriever.py`
-**What it does**: Integrates Haystack AI framework with Qdrant for document retrieval.
-
-**Key Classes**:
-- `HaystackQdrantRetriever` - Retriever class combining Haystack and Qdrant
-
-**When to modify**:
-- To change retrieval strategy
-- To integrate different Haystack components
-- To modify document loading from Qdrant
-- To add filtering or ranking logic
-
-**Dependencies**: `haystack-ai`, `qdrant-client`
+**Dependencies**: `sentence-transformers`, `torch`, `huggingface_hub`.
 
 ---
 
-### Prompts (`src/prompts/`)
+#### `qdrant_manager.py`
 
-**Purpose**: Manages prompt generation for LLM interactions.
+**Purpose**: Qdrant vector DB — local (default) or remote.
 
-#### `prompt_generator.py`
-**What it does**: Generates evaluation prompts from extracted controls JSON.
-
-**Key Functions**:
-- `generate_evaluation_prompt(controls_json, framework_name)` - Generate evaluation prompt
+**Key functions**:
+- `initialize_qdrant(collection_name, vector_size, path, url)` — create client and collection.
+- `add_documents(client, collection_name, documents, embeddings)` — upsert. **Point IDs**: deterministic UUID from `chunk_id` via `uuid.uuid5` (required by Qdrant). `chunk_id` kept in payload.
+- `search_similar(client, collection_name, query_embedding, top_k, score_threshold)` — vector search, no filter.
+- `fetch_by_filter(client, collection_name, query_filter, limit)` — **filter-only** lookup (e.g. `control_id` + `source=json`). Uses `scroll`.
+- `search_similar_filtered(client, collection_name, query_embedding, top_k, query_filter, score_threshold)` — vector search **with** payload filter. Uses `query_points`.
 
 **When to modify**:
-- To change prompt structure or format
-- To adjust prompt generation instructions
-- To modify LLM model or parameters
-- To add prompt templates or variations
-- To customize prompts for different framework types
+- Change DB (e.g. Pinecone, Weaviate).
+- Adjust batch size, distance metric, or filter behaviour.
+- **Do not** use arbitrary strings as point IDs; keep UUID derivation from `chunk_id`.
 
-**Dependencies**: OpenAI API, requires `OPENAI_API_KEY` environment variable
+**Dependencies**: `qdrant-client`.
+
+---
+
+#### `haystack_retriever.py`
+
+**Purpose**: Optional Haystack + Qdrant integration.
+
+**When to modify**: Haystack-specific retrieval or pipeline changes.
+
+---
+
+### RAG (`src/rag/`)
+
+#### `_shared.py`
+
+**Purpose**: Single embedder instance per process to avoid repeated model loads.
+
+**Key**: `get_shared_embedder() → GemmaEmbedder`. Caches on first use. Used by `index_framework` and `retrieve_control_details`.
+
+**When to modify**: Only if you change embedder lifecycle (e.g. multi-process).
+
+---
+
+#### `ingestion.py`
+
+**Purpose**: Index a framework for RAG — JSON control cards + PDF chunks.
+
+**Key function**: `index_framework(framework_name, pdf_paths=None) → None`
+
+- **JSON cards**: From `config/frameworks/{framework_name}/*.json`. Each control → one document with `source=json`, `control_id`, `source_pdf` (stem).
+- **PDF chunks**: From `data/inputs/vector_db/{framework_name}/*.pdf`, or `vector_db/*.pdf` if no subdir. Override with `pdf_paths` if provided.
+- **Collection**: `{framework_name}_rag`.
+- Uses `get_shared_embedder()`, `list_framework_jsons`, `get_vector_db_pdf_paths`, `extract_text_from_pdf`, `chunk_text`, `add_documents`.
+
+**When to modify**:
+- Change JSON vs PDF sourcing or payload schema.
+- Change collection naming or embedder usage.
+
+---
+
+#### `retrieval.py`
+
+**Purpose**: Retrieve control details by ID — JSON cards + relevant PDF chunks. **Agent-tool friendly.**
+
+**Key function**: `retrieve_control_details(control_id, framework_name, *, top_k_pdf=5) → dict`
+
+- **JSON**: `fetch_by_filter` with `control_id` + `source=json`.
+- **PDF**: Semantic search over `source=pdf` + `framework_name` using `search_similar_filtered`. Query = `"Control {id}. {description_snippet}"`.
+
+**Returns**: `{"json_cards": [...], "pdf_chunks": [...]}`. Each item has `text` and `metadata`; chunks also have `score`.
+
+**Tool schema**: `RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA` — use for OpenAI tools, LangChain, etc.
+
+**When to modify**:
+- Change filter logic, query construction, or `top_k_pdf`.
+- Update tool schema if API changes.
 
 ---
 
 ### Utils (`src/utils/`)
 
-**Purpose**: Provides utility functions for data persistence and path management.
-
 #### `framework_utils.py`
-**What it does**: Handles saving/loading framework data and evaluation reports.
 
-**Key Functions**:
-- `save_framework_data(framework_name, controls_json, evaluation_prompt)` - Save framework to disk
-- `load_framework_data(framework_name)` - Load framework from disk
-- `list_saved_frameworks()` - List all saved frameworks
-- `save_evaluation_report(evaluation_report, framework_name, applicant_name)` - Save evaluation report
-- `get_input_paths()` - Get standard input directory paths
+**Key functions**:
+- `save_extraction_json(framework_name, pdf_path, controls_json) → Path` — save under `config/frameworks/{framework_name}/{stem}.json`.
+- `get_input_paths() → dict` — `frameworks`, `applicants`, `vector_db` under `data/inputs/`.
+- `list_framework_jsons(framework_name) → list[(stem, dict)]` — load all `*.json` for a framework.
+- `get_vector_db_pdf_paths(framework_name) → list[Path]` — PDFs in `data/inputs/vector_db/`; prefers `vector_db/{framework_name}/` then flat `vector_db/*.pdf`.
 
-**When to modify**:
-- To change storage location or format
-- To add database integration (instead of file system)
-- To modify file naming conventions
-- To add metadata management
-- To change data serialization format
-
-**Storage Locations**:
-- Frameworks: `config/frameworks/{framework_name}/`
-- Evaluation reports: `data/outputs/evaluations/`
-- Input PDFs: `data/inputs/frameworks/` and `data/inputs/applicants/`
-- Vector DB input PDFs: `data/inputs/vector_db/`
-
-**Dependencies**: None (standard library only)
+**When to modify**: Storage paths, file naming, or vector_db resolution.
 
 ---
 
-## Data Flow
+## Data Flows
 
-### Framework Setup Pipeline
+### 1. Extraction pipeline (`setup_framework`)
 
-**Function**: `setup_framework(pdf_paths: str | list[str], framework_name: str)`
-
-Extracts compliance controls from framework PDF(s) and generates evaluation prompts. Supports single PDF (backward compatible) or multiple PDFs with section organization and consolidation.
+**Function**: `setup_framework(pdf_paths: str | list[str], framework_name: str) → list[Path]`
 
 ```mermaid
 flowchart TD
-    Start([setup_framework<br/>pdf_paths, framework_name]) --> Normalize[Normalize Input<br/>file/list/directory]
-    Normalize -->|pdf_paths_list| Check{Number of PDFs?}
-    
-    Check -->|Single PDF| SingleFlow[Single PDF Workflow<br/>Backward Compatible]
-    SingleFlow --> Extract1[extract_text_from_pdf]
-    Extract1 --> LLM1[extract_controls_from_framework]
-    LLM1 --> Gen1[generate_evaluation_prompt]
-    Gen1 --> Save1[save_framework_data]
-    Save1 --> End1([Return controls_json, prompt])
-    
-    Check -->|Multiple PDFs| MultiFlow[Multi-PDF Workflow]
-    MultiFlow --> Organize[organize_pdfs_by_section<br/>framework_organizer.py]
-    Organize -->|LLM: Content Analysis| Sections[Organized Sections<br/>part1, part2, rubric, etc.]
-    
-    Sections --> Validate[validate_framework_sections<br/>framework_organizer.py]
-    Validate -->|LLM: Validation Checks| Valid{Validation<br/>Pass?}
-    Valid -->|Fail| Error[Raise Exception<br/>with details]
-    Valid -->|Pass| Extract2[extract_controls_from_sections<br/>framework_consolidator.py]
-    
-    Extract2 -->|For each section| SectionControls[Section Controls JSON<br/>per section]
-    SectionControls --> Consolidate[create_master_prompt<br/>framework_consolidator.py]
-    Consolidate -->|LLM: Consolidate All| MasterPrompt[Master Evaluation Prompt<br/>All sections combined]
-    
-    MasterPrompt --> ConsolidateControls[Consolidate Controls JSON<br/>Combine all sections]
-    ConsolidateControls --> Metadata[Prepare Metadata<br/>sections, validation, keywords]
-    Metadata --> Save2[save_framework_data<br/>with metadata]
-    Save2 -->|Save Files| Files[config/frameworks/framework_name/<br/>- controls.json<br/>- evaluation_prompt.txt<br/>- framework_metadata.json]
-    Files --> End2([Return consolidated_controls,<br/>master_prompt, metadata])
-    
-    style Start fill:#e1f5ff
-    style End1 fill:#e1f5ff
-    style End2 fill:#e1f5ff
-    style Organize fill:#fff4e6
-    style Validate fill:#fff4e6
-    style Extract2 fill:#fff4e6
-    style Consolidate fill:#fff4e6
-    style Error fill:#ffccbc
-    style Files fill:#e8f5e9
-```
-
-**Detailed Steps (Multi-PDF Workflow)**:
-1. **Input Normalization**: Normalize to list of PDF paths (handles single file/list/directory)
-2. **Section Organization**: `organize_pdfs_by_section()` → LLM analyzes each PDF content to determine section names (part1, part2, rubric, etc.)
-3. **Validation**: `validate_framework_sections()` → LLM validates:
-   - Completeness (all required sections present)
-   - Text quality (readable, not corrupted)
-   - Keywords (compliance keywords detected)
-   - Control patterns (compliance patterns identified)
-   - Structure (proper document structure)
-4. **Control Extraction**: `extract_controls_from_sections()` → Extract controls from each section individually
-5. **Master Prompt Creation**: `create_master_prompt()` → LLM consolidates all sections into unified master prompt with:
-   - Full text from each section
-   - Combined controls
-   - Unified evaluation rules
-   - Rubric/scoring criteria
-6. **Consolidation**: Combine all section controls into single controls JSON
-7. **Save**: `save_framework_data()` → saves controls, master prompt, and metadata to `config/frameworks/{framework_name}/`
-
-**Note**: Single PDF workflow maintains backward compatibility. The same PDF file(s) can be indexed into the vector database using `index_framework_documents()`.
-
----
-
-### Document Indexing Pipeline
-
-**Function**: `index_framework_documents(pdf_paths: str | list[str], framework_name: str)`
-
-Processes PDF documents and stores them in a vector database. **The same PDF files from Framework Setup can be indexed here.**
-
-```mermaid
-flowchart TD
-    A[PDF Paths<br/>file/list/dir] -->|Normalize| B[PDF List]
-    B -->|For each PDF| C[Extract Text]
-    C -->|chunk_text| D[Chunks with Metadata]
-    D -->|Collect All| E[All Chunks]
-    E -->|embed_batch| F[Embeddings]
-    F -->|add_documents| G[Qdrant Vector DB]
+    A[pdf_paths] --> B[Normalize to list]
+    B --> C[extract_controls_from_pdfs]
+    C --> D[For each PDF: extract_text → LLM extract]
+    D --> E[Retry with fallback if empty]
+    E --> F[save_extraction_json per PDF]
+    F --> G[config/frameworks/name/stem.json]
 ```
 
 **Steps**:
-1. Normalize input (single file/list/directory) → `pdf_paths_list`
-2. For each PDF: extract text → chunk → add source metadata
-3. Generate embeddings for all chunks (batch)
-4. Store in Qdrant at `config/vector_db/collection/{framework_name}_chunks/`
+1. Normalize input (file, list, or directory) → list of PDF paths.
+2. `extract_controls_from_pdfs` → parallel extraction, retry on empty.
+3. For each PDF: `{"framework_name", "controls"}` → `save_extraction_json` → `config/frameworks/{framework_name}/{stem}.json`.
 
-**Returns**: `(qdrant_client, collection_name, embedder)`
+**No** composition, evaluation prompt generation, or framework metadata files.
 
 ---
 
-### Evaluation Pipeline
+### 2. RAG indexing (`index_framework`)
 
-**Function**: `evaluate_applicant_documents(applicant_pdf_paths: list[str], framework_name: str, applicant_name: str = None, save_report: bool = True)`
-
-Evaluates applicant documents against a previously set up framework.
+**Function**: `index_framework(framework_name, pdf_paths=None)`
 
 ```mermaid
 flowchart TD
-    Start([evaluate_applicant_documents<br/>applicant_pdf_paths, framework_name]) --> Load[load_framework_data<br/>framework_utils.py]
-    
-    Load -->|Load from disk| Framework[config/frameworks/framework_name/<br/>- controls.json<br/>- evaluation_prompt.txt]
-    Framework -->|controls_json: dict<br/>evaluation_prompt: str| Loaded[Framework Data Loaded]
-    
-    Start --> ExtractLoop[For each PDF in applicant_pdf_paths]
-    ExtractLoop -->|extract_text_from_pdf<br/>pdf_parser.py| Extract[Extract Text from PDF]
-    Extract -->|doc_text: str| Collect[Collect All Texts]
-    Collect -->|applicant_docs: list| Docs[All Applicant Documents]
-    
-    Loaded --> Eval[evaluate_applicant<br/>evaluator.py]
-    Docs --> Eval
-    
-    Eval -->|LLM Call: OpenAI GPT-4o| LLM[Evaluate Documents<br/>Against Framework]
-    LLM -->|Uses evaluation_prompt<br/>and controls_json| Analyze[Compare Applicant Docs<br/>with Framework Controls]
-    Analyze -->|evaluation_report: dict| Report[Evaluation Report<br/>- Compliance Status<br/>- Control Assessments<br/>- Recommendations]
-    
-    Report --> Check{save_report<br/>== True?}
-    Check -->|Yes| Save[save_evaluation_report<br/>framework_utils.py]
-    Check -->|No| End1([Return Report])
-    Save -->|Save to file| Output[data/outputs/evaluations/<br/>framework_name_applicant_name_timestamp.json]
-    Output --> End2([Return Report])
-    
-    style Start fill:#e1f5ff
-    style End1 fill:#e1f5ff
-    style End2 fill:#e1f5ff
-    style LLM fill:#fff4e6
-    style Analyze fill:#fff4e6
-    style Framework fill:#e8f5e9
-    style Output fill:#e8f5e9
+    A[framework_name] --> B[get_shared_embedder]
+    B --> C[JSON: list_framework_jsons]
+    C --> D[PDF: get_vector_db_pdf_paths or pdf_paths]
+    D --> E[extract_text_from_pdf + chunk_text]
+    E --> F[Build docs: json cards + pdf chunks]
+    F --> G[embed_batch]
+    G --> H[add_documents → Qdrant]
+    H --> I[Collection: name_rag]
 ```
 
-**Detailed Steps**:
-1. **Load Framework**: `load_framework_data(framework_name)` → loads `controls_json` and `evaluation_prompt` from saved files
-2. **Extract Applicant Text**: For each PDF in `applicant_pdf_paths`:
-   - `extract_text_from_pdf(pdf_path)` → extracts text
-   - Collects all texts into `applicant_docs` list
-3. **Evaluate**: `evaluate_applicant(applicant_docs, evaluation_prompt, controls_json)` → LLM:
-   - Uses the evaluation prompt as instructions
-   - Compares applicant documents against framework controls
-   - Generates compliance assessment for each control
-4. **Save Report** (optional): `save_evaluation_report()` → saves JSON report to `data/outputs/evaluations/`
+**Storage**:
+- **JSON cards**: `config/frameworks/{framework_name}/*.json`.
+- **PDFs**: `data/inputs/vector_db/{framework_name}/` or `vector_db/`.
+
+---
+
+### 3. RAG retrieval (`retrieve_control_details`)
+
+**Function**: `retrieve_control_details(control_id, framework_name, top_k_pdf=5)`
+
+```mermaid
+flowchart TD
+    A[control_id, framework_name] --> B[get_shared_embedder]
+    B --> C[fetch_by_filter: control_id + source=json]
+    C --> D[json_cards]
+    B --> E[Query: Control id + description snippet]
+    E --> F[embed_text]
+    F --> G[search_similar_filtered: source=pdf, framework_name]
+    G --> H[pdf_chunks]
+    D --> I[Return json_cards + pdf_chunks]
+    H --> I
+```
+
+Use `RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA` when registering as an agent tool.
 
 ---
 
 ## Common Modification Scenarios
 
-### Change LLM Model
-
-**Files to modify**:
-- `core/framework_extractor.py` - Line 92: `model="gpt-4o"`
-- `core/evaluator.py` - Line 60: `model="gpt-4o"`
-- `prompts/prompt_generator.py` - Line 61: `model="gpt-4o"`
-
-### Adjust Chunking Strategy
-
-**Files to modify**:
-- `processing/text_chunker.py` - Modify `chunk_text()` function
-- Default parameters: `chunk_size=1500`, `overlap=200`
-
-### Change Embedding Model
-
-**Files to modify**:
-- `embeddings/gemma_embedder.py` - Line 22: `model_name="google/embeddinggemma-300m"`
-- Update `get_embedding_dim()` return value if dimension changes
-
-### Modify Storage Location
-
-**Files to modify**:
-- `utils/framework_utils.py` - Update path construction in all functions
-- `embeddings/qdrant_manager.py` - Line 35: Update default path
-
-### Add New File Format Support
-
-**Files to modify**:
-- `processing/pdf_parser.py` - Add new extraction function
-- Update `main.py` to use new function
-
-### Change Evaluation Criteria
-
-**Files to modify**:
-- `prompts/prompt_generator.py` - Modify prompt generation instructions
-- `core/evaluator.py` - Modify evaluation request format
+| Goal | Files to change |
+|------|------------------|
+| **LLM model (extraction)** | `core/framework_extractor.py` — model, base_url |
+| **LLM model (evaluation)** | `core/evaluator.py` |
+| **Embedding model** | `embeddings/gemma_embedder.py` — `model_name`, `get_embedding_dim` |
+| **Chunking** | `processing/text_chunker.py` — `chunk_text` params |
+| **HF offline default** | `embeddings/gemma_embedder.py` — `HF_HUB_OFFLINE` line + comment |
+| **Storage paths** | `utils/framework_utils.py` |
+| **Qdrant path** | `embeddings/qdrant_manager.py` — `initialize_qdrant` default path |
+| **RAG JSON/PDF sources** | `rag/ingestion.py`, `utils/framework_utils.py` |
+| **Retrieval filters / top_k** | `rag/retrieval.py` |
+| **Tool schema for agents** | `rag/retrieval.py` — `RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA` |
 
 ---
 
 ## Environment Variables
 
-Required environment variables:
-
-- `OPENAI_API_KEY` - Used by:
-  - `core/framework_extractor.py`
-  - `core/evaluator.py`
-  - `prompts/prompt_generator.py`
-
-- `HF_TOKEN` or `HUGGINGFACE_TOKEN` - Used by:
-  - `embeddings/gemma_embedder.py` (for gated models)
+| Variable | Used by | Purpose |
+|----------|---------|---------|
+| `OPENROUTER_API_KEY` | `framework_extractor.py` | LLM extraction (OpenRouter) |
+| `OPENAI_API_KEY` | `evaluator.py` | Applicant evaluation |
+| `HF_TOKEN` or `HUGGINGFACE_TOKEN` | `gemma_embedder.py` | Gated models (when not offline) |
+| `HF_HUB_OFFLINE` | Set in `gemma_embedder.py` | `"1"` cache-only, `"0"` hub access |
 
 ---
 
 ## Dependencies Overview
 
-| Module | Key Dependencies |
-|--------|------------------|
+| Module | Key dependencies |
+|--------|-------------------|
 | `core/` | `openai`, `python-dotenv` |
 | `processing/` | `pdfplumber` |
-| `embeddings/` | `sentence-transformers`, `torch`, `qdrant-client`, `haystack-ai` |
-| `prompts/` | `openai`, `python-dotenv` |
-| `utils/` | None (standard library) |
+| `embeddings/` | `sentence-transformers`, `torch`, `qdrant-client`, `huggingface_hub` |
+| `rag/` | (uses `embeddings`, `utils`, `processing`) |
+| `utils/` | stdlib only |
 
 ---
 
-## Testing and Debugging Tips
+## Entry Points and Imports
 
-1. **Test PDF parsing**: Use `processing/pdf_parser.py` directly with a test PDF
-2. **Test chunking**: Pass sample text to `processing/text_chunker.py` functions
-3. **Test embeddings**: Create `GemmaEmbedder()` instance and test `embed_text()`
-4. **Test Qdrant**: Use `embeddings/qdrant_manager.py` functions with test data
-5. **Test LLM calls**: Run individual functions from `core/` and `prompts/` modules
+**`main.py`**:
+- `setup_framework(pdf_paths, framework_name)` — extract + save per-PDF JSON.
+- `get_input_paths()` — frameworks, applicants, vector_db dirs.
 
----
-
-## Entry Point
-
-The main entry point is `main.py` in the project root, which demonstrates the complete pipeline:
-
-- `setup_framework()` - Setup a new framework
-- `index_framework_documents(pdf_paths, framework_name)` - Index documents for vector search
-  - Supports single file path, list of file paths, or directory path
-  - Each PDF is processed individually (extract → chunk)
-  - All chunks are embedded together and stored in Qdrant
-  - Each chunk includes source PDF metadata
-- `evaluate_applicant_documents()` - Evaluate applicant documents
-
-All functions can be imported and used independently:
+**Typical imports**:
 
 ```python
-from src.core import extract_controls_from_framework, evaluate_applicant
-from src.processing import extract_text_from_pdf, chunk_text
-from src.embeddings import GemmaEmbedder, initialize_qdrant
+from src import (
+    setup_framework,
+    extract_controls_from_framework,
+    extract_controls_from_pdfs,
+    index_framework,
+    retrieve_control_details,
+    RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA,
+    get_shared_embedder,
+    save_extraction_json,
+    get_input_paths,
+    list_framework_jsons,
+    get_vector_db_pdf_paths,
+    extract_text_from_pdf,
+    chunk_text,
+)
 ```
 
 ---
 
-## Notes
+## Implementation Notes (memorise for edits)
 
-- All paths are relative to project root (`services/ai-service/`)
-- Configuration and data directories are created automatically
-- Error handling is minimal - exceptions propagate to caller
-- No logging framework - add if needed for production use
+1. **Extraction is extract-only**: One JSON per PDF. No master composition, no evaluation prompt generation.
+2. **Control schema**: Exactly `id`, `description`, `calculation`, `threshold`, `scale`. Enforced in `framework_extractor` prompts.
+3. **Retries**: Empty extraction → up to 2 retries with `use_fallback_prompt=True` in `framework_consolidator`.
+4. **Embedder**: `HF_HUB_OFFLINE=1` in script by default. Set to `"0"` only for first-time download; then revert.
+5. **Shared embedder**: `get_shared_embedder()` used by both `index_framework` and `retrieve_control_details`. Single load per process.
+6. **Qdrant point IDs**: Must be UUIDs. Use `uuid.uuid5(namespace, chunk_id)`. Store `chunk_id` in payload.
+7. **RAG collection**: `{framework_name}_rag`. Payload includes `source` (`json` | `pdf`), `control_id`, `framework_name`, `source_pdf`.
+8. **Vector DB PDF input**: `data/inputs/vector_db/`. Prefer `vector_db/{framework_name}/*.pdf`, else `vector_db/*.pdf`.
+9. **Framework JSON output**: `config/frameworks/{framework_name}/{pdf_stem}.json`.
 
+---
 
-
+*Paths are relative to project root `services/ai-service/`. Configuration and data directories are created as needed. Use this document as the primary reference when editing the codebase.*

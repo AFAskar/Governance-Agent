@@ -4,8 +4,16 @@ Handles Qdrant vector database operations for storing and retrieving document ch
 """
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, ScoredPoint
-from typing import List, Dict, Optional
+from qdrant_client.models import (
+    Distance,
+    VectorParams,
+    PointStruct,
+    ScoredPoint,
+    Filter,
+    FieldCondition,
+    MatchValue,
+)
+from typing import List, Dict, Optional, Any
 from pathlib import Path
 import uuid
 
@@ -100,20 +108,21 @@ def add_documents(
     if len(documents) != len(embeddings):
         raise ValueError(f"Number of documents ({len(documents)}) must match number of embeddings ({len(embeddings)})")
     
+    namespace = uuid.UUID("a0e8520b-12b4-5f3d-9c7e-8a1b2c3d4e5f")
     points = []
     for doc, embedding in zip(documents, embeddings):
-        point_id = doc.get("chunk_id", str(uuid.uuid4()))
-        
-        # Prepare payload with metadata
+        chunk_id = doc.get("chunk_id") or str(uuid.uuid4())
+        point_uuid = uuid.uuid5(namespace, str(chunk_id))
+
         payload = {
             "text": doc.get("text", ""),
-            "chunk_id": doc.get("chunk_id", point_id),
+            "chunk_id": chunk_id,
             "framework_name": doc.get("framework_name", "unknown"),
             **doc.get("metadata", {})
         }
-        
+
         point = PointStruct(
-            id=point_id,
+            id=point_uuid,
             vector=embedding,
             payload=payload
         )
@@ -240,13 +249,94 @@ def search_similar(
     return results
 
 
+def fetch_by_filter(
+    client: QdrantClient,
+    collection_name: str,
+    query_filter: Filter,
+    limit: int = 1000,
+) -> List[Dict[str, Any]]:
+    """
+    Fetch points matching a filter (no vector search). Used for exact lookups
+    e.g. control_id + source=json.
+
+    Returns:
+        List of {"text": str, "metadata": dict} for each matching point.
+    """
+    results, _ = client.scroll(
+        collection_name=collection_name,
+        scroll_filter=query_filter,
+        limit=limit,
+        with_payload=True,
+        with_vectors=False,
+    )
+    out: List[Dict[str, Any]] = []
+    for point in results:
+        payload = getattr(point, "payload", {}) or {}
+        out.append({
+            "text": payload.get("text", ""),
+            "metadata": {
+                "chunk_id": payload.get("chunk_id"),
+                "framework_name": payload.get("framework_name", "unknown"),
+                **{k: v for k, v in payload.items()
+                   if k not in ("text", "chunk_id", "framework_name")},
+            },
+        })
+    return out
+
+
+def search_similar_filtered(
+    client: QdrantClient,
+    collection_name: str,
+    query_embedding: List[float],
+    top_k: int = 5,
+    query_filter: Optional[Filter] = None,
+    score_threshold: Optional[float] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Vector similarity search with optional payload filter.
+
+    Returns:
+        List of {"text": str, "score": float, "metadata": dict}.
+    """
+    kwargs: Dict[str, Any] = {
+        "collection_name": collection_name,
+        "query": query_embedding,
+        "limit": top_k,
+        "with_payload": True,
+        "with_vectors": False,
+    }
+    if query_filter is not None:
+        kwargs["query_filter"] = query_filter
+    if score_threshold is not None:
+        kwargs["score_threshold"] = score_threshold
+
+    resp = client.query_points(**kwargs)
+    points = getattr(resp, "points", None) or []
+
+    out: List[Dict[str, Any]] = []
+    for p in points:
+        payload = getattr(p, "payload", {}) or {}
+        score = getattr(p, "score", 0.0)
+        out.append({
+            "text": payload.get("text", ""),
+            "score": float(score),
+            "metadata": {
+                "chunk_id": payload.get("chunk_id"),
+                "framework_name": payload.get("framework_name", "unknown"),
+                **{k: v for k, v in payload.items()
+                   if k not in ("text", "chunk_id", "framework_name")},
+            },
+        })
+    return out
+
+
 def delete_collection(
     client: QdrantClient,
     collection_name: str
 ) -> None:
     """
     Delete a collection from Qdrant.
-    
+
     Args:
         client: QdrantClient instance
         collection_name: Name of the collection to delete

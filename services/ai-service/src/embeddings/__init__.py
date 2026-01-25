@@ -3,8 +3,10 @@ from .qdrant_manager import (
     initialize_qdrant,
     add_documents,
     search_similar,
+    search_similar_filtered,
+    fetch_by_filter,
     create_collection,
-    delete_collection
+    delete_collection,
 )
 from .haystack_retriever import (
     HaystackQdrantRetriever,
@@ -13,8 +15,16 @@ from .haystack_retriever import (
 )
 
 __all__ = [
-    "GemmaEmbedder", "load_gemma_embedder",
-    "initialize_qdrant", "add_documents", "search_similar",
-    "create_collection", "delete_collection",
-    "HaystackQdrantRetriever", "create_retrieval_pipeline", "retrieve_documents"
+    "GemmaEmbedder",
+    "load_gemma_embedder",
+    "initialize_qdrant",
+    "add_documents",
+    "search_similar",
+    "search_similar_filtered",
+    "fetch_by_filter",
+    "create_collection",
+    "delete_collection",
+    "HaystackQdrantRetriever",
+    "create_retrieval_pipeline",
+    "retrieve_documents",
 ]
