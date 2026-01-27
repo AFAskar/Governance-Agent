@@ -481,6 +481,49 @@ def final_OE_metric(*args):
         days_taken_for_approve_deny=args[4],
         total_agreements=args[5],
     )
+    domain_2 = calculate_domain_two_OD(
+        num_published_datasets=args[6],
+        total_required_datasets=args[7],
+        delay_in_refreshing=args[8],
+        num_refreshes=args[9],
+        expected_refresh_time=args[10],
+        Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP=args[11],
+        total_published=args[12],
+        time_taken_to_resolve=args[13],
+        expected_resolution_time=args[14],
+        time_taken_to_process=args[15],
+        expected_processing_time=args[16],
+    )
+    domain_3 = calculate_domain_three_MCM(
+        num_cat=args[17],
+        total=args[18],
+        num_defined=args[19],
+        num_reporting=args[20],
+        num_linked=args[21],
+        num_incorrect=args[22],
+        total_defined=args[23],
+    )
+    domain_4 = calculate_domain_four_RMD(
+        num_published=args[24],
+        total_expected=args[25],
+        time_taken=args[26],
+        num_entities=args[27],
+        time_taken_to_fix=args[28],
+        total_reported_issues=args[29],
+    )
+    domain_5 = calculate_domain_five_DQ(
+        num_clean=args[30],
+        total=args[31],
+        num_available=args[32],
+    )
+    domain_6 = calculate_domain_six_DO(
+        response_time=args[33],
+        expected_response_time=args[34],
+        num_calls=args[35],
+        num_failed=args[36],
+        num_pipeline_failed=args[37],
+        num_pipeline_calls=args[38],
+    )
     scores = list(domain_1.values())
     oe = 0
     for score, weight in zip(scores, WEIGHTS):
