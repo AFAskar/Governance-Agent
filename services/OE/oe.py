@@ -45,6 +45,23 @@ def get_5_day_scale(days: int | float) -> SCALE:
         return "Unacceptable"
 
 
+def get_really_high_good_percentage_scale(result: float) -> SCALE:
+    if result <= 94:
+        return "Unacceptable"
+    elif 94 < result <= 95:
+        return "Low"
+    elif 95 < result <= 96:
+        return "Fair"
+    elif 96 < result <= 97:
+        return "Good"
+    elif 97 < result <= 98:
+        return "Excellent"
+    elif result > 98:
+        return "Leader"
+    else:
+        raise ValueError("Invalid result value")
+
+
 def get_high_good_percentage_scale(result: float) -> SCALE:
     if result <= 70:
         return "Unacceptable"
@@ -391,19 +408,67 @@ def Conformance_to_data_standards_in_NDL(num_clean, total) -> int:
     return SCALE_TO_INT_MAP[output]
 
 
+def Attributes_Availability_for_Correction_in_Tawakkalna(num_available, total) -> int:
+    """DQ.OE.03"""
+    result = num_available / total * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
 def calculate_domain_five_DQ(*args, **kwargs) -> dict[str, int]:
     return {
-        "DQ.OE.01": 0,
-        "DQ.OE.02": 0,
-        "DQ.OE.03": 0,
+        "DQ.OE.01": Data_Quality_index_in_GSB(
+            num_clean=kwargs.get("num_clean"), total=kwargs.get("total")
+        ),
+        "DQ.OE.02": Conformance_to_data_standards_in_NDL(
+            num_clean=kwargs.get("num_clean"), total=kwargs.get("total")
+        ),
+        "DQ.OE.03": Attributes_Availability_for_Correction_in_Tawakkalna(
+            num_available=kwargs.get("num_available"), total=kwargs.get("total")
+        ),
     }
+
+
+def Delay_in_response_time_of_GSBAPIs(
+    response_time, expected_response_time, num_calls
+) -> int:
+    """DO.OE.01"""
+    result = response_time / (expected_response_time * num_calls) * 100
+    output = get_low_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Responsiveness_of_GSB_API_calls(num_failed, num_calls) -> int:
+    """DO.OE.02"""
+    result = (num_calls - num_failed) / num_calls * 100
+    output = get_really_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Responsiveness_of_the_integration_solution_with_NDL(
+    num_pipeline_failed, num_pipeline_calls
+) -> int:
+    """DO.OE.03"""
+    result = (num_pipeline_calls - num_pipeline_failed) / num_pipeline_calls * 100
+    output = get_really_high_good_percentage_scale(result)
+
+    return SCALE_TO_INT_MAP[output]
 
 
 def calculate_domain_six_DO(*args, **kwargs) -> dict[str, int]:
     return {
-        "DO.OE.01": 0,
-        "DO.OE.02": 0,
-        "DO.OE.03": 0,
+        "DO.OE.01": Delay_in_response_time_of_GSBAPIs(
+            response_time=kwargs.get("response_time"),
+            expected_response_time=kwargs.get("expected_response_time"),
+            num_calls=kwargs.get("num_calls"),
+        ),
+        "DO.OE.02": Responsiveness_of_GSB_API_calls(
+            num_failed=kwargs.get("num_failed"), num_calls=kwargs.get("num_calls")
+        ),
+        "DO.OE.03": Responsiveness_of_the_integration_solution_with_NDL(
+            num_pipeline_failed=kwargs.get("num_pipeline_failed"),
+            num_pipeline_calls=kwargs.get("num_pipeline_calls"),
+        ),
     }
 
 
