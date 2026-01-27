@@ -30,6 +30,40 @@ def get_high_good_percentage_scale(result: float) -> SCALE:
         raise ValueError("Invalid result value")
 
 
+def get_low_good_percentage_scale(result: float) -> SCALE:
+    if result > 10:
+        return "Unacceptable"
+    elif 8 < result <= 10:
+        return "Low"
+    elif 6 < result <= 8:
+        return "Fair"
+    elif 4 < result <= 6:
+        return "Good"
+    elif 2 < result <= 4:
+        return "Excellent"
+    elif result <= 2:
+        return "Leader"
+    else:
+        raise ValueError("Invalid result value")
+
+
+def get_low_good_int_scale(result: float) -> SCALE:
+    if result > 5:
+        return "Unacceptable"
+    elif 4 < result <= 5:
+        return "Low"
+    elif 3 < result <= 4:
+        return "Fair"
+    elif 2 < result <= 3:
+        return "Good"
+    elif 1 < result <= 2:
+        return "Excellent"
+    elif result <= 1:
+        return "Leader"
+    else:
+        raise ValueError("Invalid result value")
+
+
 def get_day_low_good_scale(day_num: int | float) -> SCALE:
     if day_num <= 7:
         return "Leader"
@@ -64,16 +98,14 @@ def calculate_Adherence_to_the_Data_Sharing_Policy(
     return SCALE_TO_INT_MAP[output]
 
 
-def calculate_Systems_integrated_with_NDL(
-    num_integrated: int, total_systems: int
-) -> int:
+def calculate_Systems_integrated_with_NDL(num_integrated, total_systems) -> int:
     result = num_integrated / total_systems * 100
     output = get_high_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
 
 def Data_sharing_agreement_processing(
-    days_taken_for_approve_deny: int, total_agreements: int
+    days_taken_for_approve_deny, total_agreements
 ) -> int:
     result = days_taken_for_approve_deny / total_agreements
 
@@ -81,14 +113,14 @@ def Data_sharing_agreement_processing(
     return SCALE_TO_INT_MAP[output]
 
 
-def Published_APIs_on_GSB(total_published_apis: int, total_required_apis: int) -> int:
+def Published_APIs_on_GSB(total_published_apis, total_required_apis) -> int:
     result = total_published_apis / total_required_apis * 100
     output = get_high_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
 
 def Attributes_published_in_Tawakkalna(
-    total_published_attributes: int, total_required_attributes: int
+    total_published_attributes, total_required_attributes
 ) -> int:
     result = total_published_attributes / total_required_attributes * 100
     output = get_high_good_percentage_scale(result)
@@ -121,17 +153,85 @@ def calculate_domain_one(*args, **kwargs) -> dict[str, int]:
     }
 
 
-def calculate_domain_two() -> dict[str, int]:
+def Datasets_published_in_ODP(num_published_datasets, total_required_datasets) -> int:
+    """OD.OE.01"""
+    result = num_published_datasets / total_required_datasets * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Delay_Lag_in_refreshing_open_dataset(
+    delay_in_refreshing, num_refreshes, expected_refresh_time
+) -> int:
+    """OD.OE.02"""
+    result = delay_in_refreshing / (num_refreshes * expected_refresh_time) * 100
+    output = get_low_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Reported_issues_for_the_published_datasets(
+    Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP, total_published
+) -> int:
+    """OD.OE.03"""
+    result = (
+        Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP
+        / total_published
+    )
+
+    output = get_low_good_int_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Delay_in_resolving_reported_issues_on_published_datasets(
+    time_taken_to_resolve, expected_resolution_time
+) -> int:
+    """OD.OE.04"""
+    result = time_taken_to_resolve / expected_resolution_time * 100
+    output = get_low_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Response_effectiveness_to_new_open_dataset_requests(
+    time_taken_to_process, expected_processing_time
+) -> int:
+    """OD.OE.05"""
+    result = (
+        1
+        - (time_taken_to_process - expected_processing_time) / expected_processing_time
+    ) * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def calculate_domain_two_OD(*args, **kwargs) -> dict[str, int]:
     return {
-        "OD.OE.01": 0,
-        "OD.OE.02": 0,
-        "OD.OE.03": 0,
-        "OD.OE.04": 0,
-        "OD.OE.05": 0,
+        "OD.OE.01": Datasets_published_in_ODP(
+            num_published_datasets=kwargs.get("num_published_datasets"),
+            total_required_datasets=kwargs.get("total_required_datasets"),
+        ),
+        "OD.OE.02": Delay_Lag_in_refreshing_open_dataset(
+            delay_in_refreshing=kwargs.get("delay_in_refreshing"),
+            num_refreshes=kwargs.get("num_refreshes"),
+            expected_refresh_time=kwargs.get("expected_refresh_time"),
+        ),
+        "OD.OE.03": Reported_issues_for_the_published_datasets(
+            Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP=kwargs.get(
+                "Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP"
+            ),
+            total_published=kwargs.get("total_published"),
+        ),
+        "OD.OE.04": Delay_in_resolving_reported_issues_on_published_datasets(
+            time_taken_to_resolve=kwargs.get("time_taken_to_resolve"),
+            expected_resolution_time=kwargs.get("expected_resolution_time"),
+        ),
+        "OD.OE.05": Response_effectiveness_to_new_open_dataset_requests(
+            time_taken_to_process=kwargs.get("time_taken_to_process"),
+            expected_processing_time=kwargs.get("expected_processing_time"),
+        ),
     }
 
 
-def calculate_domain_three() -> dict[str, int]:
+def calculate_domain_three_MCM() -> dict[str, int]:
     return {
         "MCM.OE.01": 0,
         "MCM.OE.02": 0,
@@ -141,7 +241,7 @@ def calculate_domain_three() -> dict[str, int]:
     }
 
 
-def calculate_domain_four() -> dict[str, int]:
+def calculate_domain_four_RMD() -> dict[str, int]:
     return {
         "RMD.OE.01": 0,
         "RMD.OE.02": 0,
@@ -149,7 +249,7 @@ def calculate_domain_four() -> dict[str, int]:
     }
 
 
-def calculate_domain_five() -> dict[str, int]:
+def calculate_domain_five_DQ() -> dict[str, int]:
     return {
         "DQ.OE.01": 0,
         "DQ.OE.02": 0,
@@ -157,7 +257,7 @@ def calculate_domain_five() -> dict[str, int]:
     }
 
 
-def calculate_domain_six() -> dict[str, int]:
+def calculate_domain_six_DO() -> dict[str, int]:
     return {
         "DO.OE.01": 0,
         "DO.OE.02": 0,
