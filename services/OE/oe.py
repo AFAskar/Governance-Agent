@@ -231,17 +231,66 @@ def calculate_domain_two_OD(*args, **kwargs) -> dict[str, int]:
     }
 
 
-def calculate_domain_three_MCM() -> dict[str, int]:
+def Systems_cataloged_in_NDC(num_cat, total) -> int:
+    """MCM.OE.01"""
+    result = num_cat / total * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Business_attributes_defined_and_linked_in_NDC(num_defined, total) -> int:
+    """MCM.OE.02"""
+    result = num_defined / total * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Reporting_assets_defined_in_NDC(num_reporting, total) -> int:
+    """MCM.OE.03"""
+    result = num_reporting / total * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Business_attributes_linked_to_attribute_class_standards_in_NDC(
+    num_linked, total
+) -> int:
+    """MCM.OE.04"""
+    result = num_linked / total * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Accuracy_of_business_attribute_relationships_in_NDC(
+    num_incorrect, total_defined
+) -> int:
+    """MCM.OE.05"""
+    result = num_incorrect / total_defined * 100
+    output = get_low_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def calculate_domain_three_MCM(*args, **kwargs) -> dict[str, int]:
     return {
-        "MCM.OE.01": 0,
-        "MCM.OE.02": 0,
-        "MCM.OE.03": 0,
-        "MCM.OE.04": 0,
-        "MCM.OE.05": 0,
+        "MCM.OE.01": Systems_cataloged_in_NDC(
+            kwargs.get("num_cat"), kwargs.get("total")
+        ),
+        "MCM.OE.02": Business_attributes_defined_and_linked_in_NDC(
+            kwargs.get("num_defined"), kwargs.get("total")
+        ),
+        "MCM.OE.03": Reporting_assets_defined_in_NDC(
+            kwargs.get("num_reporting"), kwargs.get("total")
+        ),
+        "MCM.OE.04": Business_attributes_linked_to_attribute_class_standards_in_NDC(
+            kwargs.get("num_linked"), kwargs.get("total")
+        ),
+        "MCM.OE.05": Accuracy_of_business_attribute_relationships_in_NDC(
+            kwargs.get("num_incorrect"), kwargs.get("total_defined")
+        ),
     }
 
 
-def calculate_domain_four_RMD() -> dict[str, int]:
+def calculate_domain_four_RMD(*args, **kwargs) -> dict[str, int]:
     return {
         "RMD.OE.01": 0,
         "RMD.OE.02": 0,
@@ -249,7 +298,7 @@ def calculate_domain_four_RMD() -> dict[str, int]:
     }
 
 
-def calculate_domain_five_DQ() -> dict[str, int]:
+def calculate_domain_five_DQ(*args, **kwargs) -> dict[str, int]:
     return {
         "DQ.OE.01": 0,
         "DQ.OE.02": 0,
@@ -257,7 +306,7 @@ def calculate_domain_five_DQ() -> dict[str, int]:
     }
 
 
-def calculate_domain_six_DO() -> dict[str, int]:
+def calculate_domain_six_DO(*args, **kwargs) -> dict[str, int]:
     return {
         "DO.OE.01": 0,
         "DO.OE.02": 0,
