@@ -13,6 +13,38 @@ SCALE_TO_INT_MAP = {
 }
 
 
+def get_med_good_percentage_scale(result: float) -> SCALE:
+    if result <= 90:
+        return "Unacceptable"
+    elif 90 < result <= 92:
+        return "Low"
+    elif 92 < result <= 94:
+        return "Fair"
+    elif 94 < result <= 96:
+        return "Good"
+    elif 96 < result <= 98:
+        return "Excellent"
+    elif result > 98:
+        return "Leader"
+    else:
+        raise ValueError("Invalid result value")
+
+
+def get_5_day_scale(days: int | float) -> SCALE:
+    if days <= 1:
+        return "Leader"
+    elif 1 < days <= 2:
+        return "Excellent"
+    elif 2 < days <= 3:
+        return "Good"
+    elif 3 < days <= 4:
+        return "Fair"
+    elif 4 < days <= 5:
+        return "Low"
+    else:
+        return "Unacceptable"
+
+
 def get_high_good_percentage_scale(result: float) -> SCALE:
     if result <= 70:
         return "Unacceptable"
@@ -24,7 +56,7 @@ def get_high_good_percentage_scale(result: float) -> SCALE:
         return "Good"
     elif 85 < result <= 90:
         return "Excellent"
-    elif result > 95:
+    elif result > 90:
         return "Leader"
     else:
         raise ValueError("Invalid result value")
@@ -74,6 +106,21 @@ def get_day_low_good_scale(day_num: int | float) -> SCALE:
     elif 21 < day_num <= 28:
         return "Fair"
     elif 28 < day_num <= 35:
+        return "Low"
+    else:
+        return "Unacceptable"
+
+
+def get_day_med_good_scale(day_num: int | float) -> SCALE:
+    if day_num <= 10:
+        return "Leader"
+    elif 10 < day_num <= 15:
+        return "Excellent"
+    elif 15 < day_num <= 20:
+        return "Good"
+    elif 20 < day_num <= 25:
+        return "Fair"
+    elif 25 < day_num <= 30:
         return "Low"
     else:
         return "Unacceptable"
@@ -290,12 +337,58 @@ def calculate_domain_three_MCM(*args, **kwargs) -> dict[str, int]:
     }
 
 
+def Publishing_reference_entities(num_published, total_expected) -> int:
+    """RMD.OE.01"""
+    result = num_published / total_expected * 100
+    output = get_med_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Time_taken_to_publish_new_reference_entities(time_taken, num_entities) -> int:
+    """RMD.OE.02"""
+    result = time_taken / num_entities
+    output = get_day_med_good_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Time_taken_to_fix_reported_issues_in_reference_entities(
+    time_taken_to_fix, total_reported_issues
+) -> int:
+    """RMD.OE.03"""
+    result = time_taken_to_fix / total_reported_issues
+    output = get_5_day_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
 def calculate_domain_four_RMD(*args, **kwargs) -> dict[str, int]:
     return {
-        "RMD.OE.01": 0,
-        "RMD.OE.02": 0,
-        "RMD.OE.03": 0,
+        "RMD.OE.01": Publishing_reference_entities(
+            num_published=kwargs.get("num_published"),
+            total_expected=kwargs.get("total_expected"),
+        ),
+        "RMD.OE.02": Time_taken_to_publish_new_reference_entities(
+            time_taken=kwargs.get("time_taken"),
+            num_entities=kwargs.get("num_entities"),
+        ),
+        "RMD.OE.03": Time_taken_to_fix_reported_issues_in_reference_entities(
+            time_taken_to_fix=kwargs.get("time_taken_to_fix"),
+            total_reported_issues=kwargs.get("total_reported_issues"),
+        ),
     }
+
+
+def Data_Quality_index_in_GSB(num_clean, total) -> int:
+    """DQ.OE.01"""
+    result = num_clean / total * 100
+    output = get_med_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Conformance_to_data_standards_in_NDL(num_clean, total) -> int:
+    """DQ.OE.02"""
+    result = num_clean / total * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
 
 
 def calculate_domain_five_DQ(*args, **kwargs) -> dict[str, int]:
