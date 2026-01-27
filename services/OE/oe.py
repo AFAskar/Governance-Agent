@@ -81,43 +81,98 @@ def Data_sharing_agreement_processing(
     return SCALE_TO_INT_MAP[output]
 
 
-def calculate_domain_one(
-    Certified_attribs,
-    total_attribs,
-    num_integrated,
-    total_systems,
-    days_taken_for_approve_deny,
-    total_agreements,
-    is_classified=False,
-):
+def Published_APIs_on_GSB(total_published_apis: int, total_required_apis: int) -> int:
+    result = total_published_apis / total_required_apis * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def Attributes_published_in_Tawakkalna(
+    total_published_attributes: int, total_required_attributes: int
+) -> int:
+    result = total_published_attributes / total_required_attributes * 100
+    output = get_high_good_percentage_scale(result)
+    return SCALE_TO_INT_MAP[output]
+
+
+def calculate_domain_one(*args, **kwargs) -> dict[str, int]:
     return {
         "DSI.OE.01": calculate_Adherence_to_the_Data_Sharing_Policy(
-            Certified_attribs, total_attribs, is_classified
+            Certified_attribs=kwargs.get("Certified_attribs"),
+            total_attribs=kwargs.get("total_attribs"),
+            is_classified=kwargs.get("is_classified"),
         ),
         "DSI.OE.02": calculate_Systems_integrated_with_NDL(
-            num_integrated, total_systems
+            num_integrated=kwargs.get("num_integrated"),
+            total_systems=kwargs.get("total_systems"),
         ),
         "DSI.OE.03": Data_sharing_agreement_processing(
-            days_taken_for_approve_deny, total_agreements
+            days_taken_for_approve_deny=kwargs.get("days_taken_for_approve_deny"),
+            total_agreements=kwargs.get("total_agreements"),
+        ),
+        "DSI.OE.04": Published_APIs_on_GSB(
+            total_published_apis=kwargs.get("total_published_apis"),
+            total_required_apis=kwargs.get("total_required_apis"),
+        ),
+        "DSI.OE.05": Attributes_published_in_Tawakkalna(
+            total_published_attributes=kwargs.get("total_published_attributes"),
+            total_required_attributes=kwargs.get("total_required_attributes"),
         ),
     }
 
 
-def final_OE_metric(
-    days_taken_for_approve_deny,
-    total_agreements,
-    num_integrated,
-    total_systems,
-    total_attribs,
-    Certified_attribs,
-):
+def calculate_domain_two() -> dict[str, int]:
+    return {
+        "OD.OE.01": 0,
+        "OD.OE.02": 0,
+        "OD.OE.03": 0,
+        "OD.OE.04": 0,
+        "OD.OE.05": 0,
+    }
+
+
+def calculate_domain_three() -> dict[str, int]:
+    return {
+        "MCM.OE.01": 0,
+        "MCM.OE.02": 0,
+        "MCM.OE.03": 0,
+        "MCM.OE.04": 0,
+        "MCM.OE.05": 0,
+    }
+
+
+def calculate_domain_four() -> dict[str, int]:
+    return {
+        "RMD.OE.01": 0,
+        "RMD.OE.02": 0,
+        "RMD.OE.03": 0,
+    }
+
+
+def calculate_domain_five() -> dict[str, int]:
+    return {
+        "DQ.OE.01": 0,
+        "DQ.OE.02": 0,
+        "DQ.OE.03": 0,
+    }
+
+
+def calculate_domain_six() -> dict[str, int]:
+    return {
+        "DO.OE.01": 0,
+        "DO.OE.02": 0,
+        "DO.OE.03": 0,
+    }
+
+
+def final_OE_metric(*args):
     domain_1 = calculate_domain_one(
-        Certified_attribs,
-        total_attribs,
-        num_integrated,
-        total_systems,
-        days_taken_for_approve_deny,
-        total_agreements,
+        Certified_attribs=args[0],
+        total_attribs=args[1],
+        num_integrated=args[2],
+        total_systems=args[3],
+        days_taken_for_approve_deny=args[4],
+        total_agreements=args[5],
     )
     scores = list(domain_1.values())
     oe = 0
