@@ -185,9 +185,32 @@ def calculate_Systems_integrated_with_NDL(num_integrated, total_systems) -> int:
 def Data_sharing_agreement_processing(
     days_taken_for_approve_deny, total_agreements
 ) -> int:
+    """DSI.OE.03 - Measures days taken to process data sharing agreements
+    
+    Scale Intervals:
+    - Unacceptable: > 10 days
+    - Low: (8 days, 10 days]
+    - Fair: (6 days, 8 days]
+    - Good: (4 days, 6 days]
+    - Excellent: (2 days, 4 days]
+    - Leader: <= 2 days
+    """
     result = days_taken_for_approve_deny / total_agreements
 
-    output = get_low_good_percentage_scale(result)
+    # Use 10-day scale for this metric
+    if result > 10:
+        output = "Unacceptable"
+    elif 8 < result <= 10:
+        output = "Low"
+    elif 6 < result <= 8:
+        output = "Fair"
+    elif 4 < result <= 6:
+        output = "Good"
+    elif 2 < result <= 4:
+        output = "Excellent"
+    else:  # <= 2
+        output = "Leader"
+    
     return SCALE_TO_INT_MAP[output]
 
 
@@ -491,59 +514,78 @@ def calculate_domain_six_DO(*args, **kwargs) -> dict[str, int]:
 
 
 def final_OE_metric(*args):
+    """Calculate final OE score as weighted sum of all metric scores.
+    
+    Formula: OE Score = sum(wi * si) for all metrics
+    where wi is the weight and si is the score for metric i
+    """
     domain_1 = calculate_domain_one(
         Certified_attribs=args[0],
         total_attribs=args[1],
-        num_integrated=args[2],
-        total_systems=args[3],
-        days_taken_for_approve_deny=args[4],
-        total_agreements=args[5],
+        is_classified=args[2],
+        num_integrated=args[3],
+        total_systems=args[4],
+        days_taken_for_approve_deny=args[5],
+        total_agreements=args[6],
     )
     domain_2 = calculate_domain_two_OD(
-        num_published_datasets=args[6],
-        total_required_datasets=args[7],
-        delay_in_refreshing=args[8],
-        num_refreshes=args[9],
-        expected_refresh_time=args[10],
-        Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP=args[11],
-        total_published=args[12],
-        time_taken_to_resolve=args[13],
-        expected_resolution_time=args[14],
-        time_taken_to_process=args[15],
-        expected_processing_time=args[16],
+        num_published_datasets=args[7],
+        total_required_datasets=args[8],
+        delay_in_refreshing=args[9],
+        num_refreshes=args[10],
+        expected_refresh_time=args[11],
+        Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP=args[12],
+        total_published=args[13],
+        time_taken_to_resolve=args[14],
+        expected_resolution_time=args[15],
+        time_taken_to_process=args[16],
+        expected_processing_time=args[17],
     )
     domain_3 = calculate_domain_three_MCM(
-        num_cat=args[17],
-        total=args[18],
-        num_defined=args[19],
-        num_reporting=args[20],
-        num_linked=args[21],
-        num_incorrect=args[22],
-        total_defined=args[23],
+        num_cat=args[18],
+        total=args[19],
+        num_defined=args[20],
+        num_reporting=args[21],
+        num_linked=args[22],
+        num_incorrect=args[23],
+        total_defined=args[24],
     )
     domain_4 = calculate_domain_four_RMD(
-        num_published=args[24],
-        total_expected=args[25],
-        time_taken=args[26],
-        num_entities=args[27],
-        time_taken_to_fix=args[28],
-        total_reported_issues=args[29],
+        num_published=args[25],
+        total_expected=args[26],
+        time_taken=args[27],
+        num_entities=args[28],
+        time_taken_to_fix=args[29],
+        total_reported_issues=args[30],
     )
     domain_5 = calculate_domain_five_DQ(
-        num_clean=args[30],
-        total=args[31],
-        num_available=args[32],
+        num_clean=args[31],
+        total=args[32],
+        num_available=args[33],
     )
     domain_6 = calculate_domain_six_DO(
-        response_time=args[33],
-        expected_response_time=args[34],
-        num_calls=args[35],
-        num_failed=args[36],
-        num_pipeline_failed=args[37],
-        num_pipeline_calls=args[38],
+        response_time=args[34],
+        expected_response_time=args[35],
+        num_calls=args[36],
+        num_failed=args[37],
+        num_pipeline_failed=args[38],
+        num_pipeline_calls=args[39],
     )
-    scores = list(domain_1.values())
+    
+    # Aggregate all metric scores from all domains
+    all_metrics = {}
+    all_metrics.update(domain_1)
+    all_metrics.update(domain_2)
+    all_metrics.update(domain_3)
+    all_metrics.update(domain_4)
+    all_metrics.update(domain_5)
+    all_metrics.update(domain_6)
+    
+    # Calculate weighted sum, only for metrics that have weights defined
     oe = 0
-    for score, weight in zip(scores, WEIGHTS):
-        oe += score * weight
+    for metric_id, weight in WEIGHTS.items():
+        if metric_id in all_metrics:
+            oe += all_metrics[metric_id] * weight
+    
     return oe
+
