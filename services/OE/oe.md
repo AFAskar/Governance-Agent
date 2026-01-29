@@ -1,4 +1,94 @@
 # Operational Excellence
+
+## Definition
+
+𝑂𝐸 𝑆𝑐𝑜𝑟𝑒 = sum from i=1 to |l| of (wi * si)
+
+Wherein 𝐿 = {𝑚1, 𝑚2, … }is the list of metrics defined in Section 5.2, 𝑠i represents the score of the
+entity for metric 𝑚i,and 𝑤i represents the weight of that metric. The rationale for introducing weights
+in the calculation is to administer the role of the metrics 
+
+## Weights
+### How many metrics are targeted for the third round/year of the assessment, and what were their weights?
+For the third round, 13 metrics are targeted which are listed below along with their weights:
+
+Metric ID Metric Name Platform
+Metric
+Weight
+DSI.OE.02 Systems integrated with NDL NDL 0.20
+DO.OE.03 Responsiveness of the integration solution with NDL NDL 0.05
+DQ.OE.02 Conformance to data standards in NDL NDL 0.05
+DO.OE.02 Responsiveness of GSB API calls GSB 0.10
+DSI.OE.01 Adherence to the Data Sharing Policy GSB 0.05
+RMD.OE.01 Publishing reference entities RDP 0.10
+OD.OE.01 Datasets published in ODP ODP 0.15
+OD.OE.05 Response effectiveness to new open dataset requests ODP 0.05
+MCM.OE.01 Systems cataloged in NDC NDC 0.05
+MCM.OE.02 Business attributes defined and linked in NDC NDC 0.05
+MCM.OE.03 Reporting assets defined in NDC NDC 0.05
+DSI.OE.05 Attributes Availability for Correction in Tawakkalna Tawakkalna 0.05
+DQ.OE.03 Attributes published in Tawakkalna Tawakkalna 0.05
+
+### What does it signify when a metric is marked as “NA”(‘Not Applicable’)for an entity, and how is the overall result subsequently calculated? 
+If a metric is marked as “NA,” it indicates that the entity is exempted from evaluation on that
+particular metric for the current assessment round. Consequently, the overall weight distribution will
+be recalibrated, reallocating the weights of the excluded metrics proportionally across the remaining
+applicable ones, thereby increasing their individual weights. For example, given the original metrics
+and their weightsshown in the previous table, assuming DO.OE.02and DSI.OE.01aremarked as “NA”,
+the adjusted weights after redistribution will be:
+
+
+Metric ID Metric Name Platform
+Metric
+Weight
+DSI.OE.02 Systems integrated with NDL NDL 0.24
+DO.OE.03 Responsiveness of the integration solution with NDL NDL 0.06
+DQ.OE.02 Conformance to data standards in NDL NDL 0.06
+RMD.OE.01 Publishing reference entities RDP 0.12
+OD.OE.01 Datasets published in ODP ODP 0.18
+OD.OE.05 Response effectiveness to new open dataset requests ODP 0.06
+MCM.OE.01 Systems cataloged in NDC NDC 0.06
+MCM.OE.02 Business attributes defined and linked in NDC NDC 0.06
+MCM.OE.03 Reporting assets defined in NDC NDC 0.06
+DSI.OE.05 Attributes availability for correction in Tawakkalna Tawakkalna 0.06
+DQ.OE.03 Attributes published in Tawakkalna Tawakkalna 0.06
+
+This adjustment ensures that the total weight of all metrics remains one and that the entity is only
+evaluated on applicable metrics.
+
+### What are the weights associated for the two evaluation criteria: Number of certified attributes and the API classification?
+The weight of the first criteria is 0.8 whereas the weight of the second one is 0.2 respectively.
+
+### Please show an example of how the metric is calculated.
+
+Suppose an entity has published three APIs on the GSB and the details of these APIs, such as their
+attribute count, the number of their certified attributes (i.e., attributes where the publisher is the
+same as the source/authorized entity), and their classification status are as shown in the table below.
+API Version
+Number of API
+Attributes
+Number of Certified
+Attributes
+API Classification
+Complete?
+API 1 1 70 68 Yes
+API 2 3 30 25 Yes
+API 3 1 20 17 No
+Based on the status above, the metric score is calculated as follows:
+• Adherence of API 1= ((68 / 70 * 0.8) + (1 * 0.2)) * 100 = 97.7%
+• Adherence of API 2= ((25 / 30 * 0.8) + (1 * 0.2)) * 100 = 86.6%
+• Adherence of API 3 = ((17 / 20 * 0.8) + (0 * 0.2)) * 100 = 68.0%
+Then, the adherence score for the entity is calculated as the average adherence score for the APIs as
+follows = (97.7% + 86.6% + 68.0%) ÷ 3 = 84.1%
+Scale Interval = Good
+
+
+4.1.2.Metric (DSI.OE.02): Systems integrated with NDL
+This metric reflects the share of systems fully integrated with the National Data Lake (NDL), based on
+requests from the NDL team. Integration counts only if all requirements (e.g., currency of data and
+adherence to the integration method)are met, ensuring the data is usableand reliable.
+
+
 ## Metric Structure
 The metric structure consists of several elements discussed in the table below.
 ID Element Name Description

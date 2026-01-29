@@ -173,7 +173,7 @@ def Data_sharing_agreement_processing(
 ) -> int:
     result = days_taken_for_approve_deny / total_agreements
 
-    output = get_day_low_good_scale(result)
+    output = get_low_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
 
@@ -250,7 +250,11 @@ def Delay_in_resolving_reported_issues_on_published_datasets(
     time_taken_to_resolve, expected_resolution_time
 ) -> int:
     """OD.OE.04"""
-    result = time_taken_to_resolve / expected_resolution_time * 100
+    result = (
+        (time_taken_to_resolve - expected_resolution_time)
+        / expected_resolution_time
+        * 100
+    )
     output = get_low_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
