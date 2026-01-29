@@ -2,7 +2,21 @@ from typing import Literal
 import math
 
 SCALE = Literal["Unacceptable", "Low", "Fair", "Good", "Excellent", "Leader"]
-WEIGHTS = [0.20, 0.05, 0.05, 0.1, 0.05, 0.1, 0.15, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+WEIGHTS = {
+    "DSI.OE.01": 0.05,
+    "DSI.OE.02": 0.20,
+    "DSI.OE.05": 0.05,
+    "OD.OE.01": 0.15,
+    "OD.OE.05": 0.05,
+    "MCM.OE.01": 0.05,
+    "MCM.OE.02": 0.05,
+    "MCM.OE.03": 0.05,
+    "RMD.OE.01": 0.1,
+    "DQ.OE.02": 0.05,
+    "DQ.OE.03": 0.05,
+    "DO.OE.02": 0.1,
+    "DO.OE.03": 0.05,
+}
 SCALE_TO_INT_MAP = {
     "Unacceptable": 0,
     "Low": 1,
