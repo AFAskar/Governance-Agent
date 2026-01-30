@@ -11,7 +11,12 @@ _cached_embedder: Optional[Any] = None
 
 
 def get_shared_embedder():
-    """Return a single embedder instance, creating and caching on first use."""
+    """
+    Return the shared, per-process embedder instance, creating and caching it on first use.
+    
+    Returns:
+        The embedder instance cached for the process; created and stored on the first call.
+    """
     global _cached_embedder
     if _cached_embedder is None:
         _cached_embedder = load_gemma_embedder()

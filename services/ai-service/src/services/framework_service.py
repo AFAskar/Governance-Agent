@@ -15,6 +15,14 @@ from src.utils import get_input_paths, save_extraction_json
 
 
 def _project_root() -> Path:
+    """
+    Get the repository's project root directory.
+    
+    Resolves this file's location and returns the Path three levels above it.
+    
+    Returns:
+        Path: Path object pointing to the repository root directory.
+    """
     return Path(__file__).resolve().parent.parent.parent
 
 
@@ -27,21 +35,18 @@ class FrameworkService:
         pdf_sections: list[tuple[str, bytes]],
     ) -> dict[str, Any]:
         """
-        Process multiple PDFs with section names: extract controls, save JSON per section, and index into vector DB.
-
-        Steps:
-        1. Save uploaded PDFs to a temp directory with section names as filenames.
-        2. Extract controls from each PDF in parallel (existing core logic).
-        3. Save one JSON per section under config/frameworks/{framework_name}/{section_name}.json.
-        4. Persist PDFs to data/inputs/vector_db/{framework_name}/ and call index_framework to populate vector DB.
-        5. Return summary (framework_name, total_controls, sections, created_at).
-
-        Args:
-            framework_name: Framework identifier.
-            pdf_sections: List of (section_name, pdf_bytes). Section name is used as the JSON filename.
-
+        Orchestrates extraction of controls from labeled PDF sections, saves per-section JSON, indexes PDFs into the vector DB, and returns a summary.
+        
+        Parameters:
+            framework_name (str): Identifier used for saved files and vector DB organization.
+            pdf_sections (list[tuple[str, bytes]]): List of (section_name, pdf_bytes); each section_name is used as the JSON and PDF filename.
+        
         Returns:
-            Dict with keys: framework_name, total_controls, sections (list of {section_name, controls_count, json_path}), created_at.
+            dict: Summary containing:
+                - framework_name: the provided framework_name.
+                - total_controls: total number of extracted controls across all sections.
+                - sections: list of objects with keys `section_name`, `controls_count`, and `json_path`.
+                - created_at: UTC timestamp when the summary was created.
         """
         if not pdf_sections:
             raise ValueError("At least one PDF section is required")

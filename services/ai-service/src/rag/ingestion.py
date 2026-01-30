@@ -17,13 +17,12 @@ def index_framework(
     pdf_paths: Optional[List[str]] = None,
 ) -> None:
     """
-    Index a framework for RAG: JSON control cards + PDF chunks from vector_db input.
-
-    - JSON cards: one per control from config/frameworks/{framework_name}/*.json.
-    - PDF chunks: from data/inputs/vector_db/{framework_name}/*.pdf, or vector_db/*.pdf
-      if no subdir. Use pdf_paths when provided instead.
-
-    Collection name: {framework_name}_rag.
+    Index a framework's JSON control cards and PDF text chunks into a Qdrant collection for RAG.
+    
+    Scans JSON control cards under config/frameworks/{framework_name} and converts each control into a textual document; extracts and chunks text from PDFs found under data/inputs/vector_db/{framework_name} (or the global vector_db directory) unless overridden by pdf_paths. Computes embeddings with the shared embedder and writes documents and embeddings to the collection named "{framework_name}_rag". If no documents are collected the function returns without modifying the vector store.
+    
+    Parameters:
+        pdf_paths (Optional[List[str]]): Optional explicit list of PDF file paths to index; when provided, these paths override automatic PDF discovery.
     """
     embedder = get_shared_embedder()
     dim = embedder.get_embedding_dim()
