@@ -18,15 +18,18 @@ def evaluate_applicant(
     controls_json: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
-    Evaluate applicant documents using the saved evaluation prompt and controls.
+    Evaluate applicant documents against a saved evaluation prompt and controls to produce a structured evaluation report.
     
-    Args:
-        applicant_docs: List of text content from applicant documents
-        evaluation_prompt: Saved evaluation prompt from setup phase
-        controls_json: Saved controls JSON from setup phase
-        
+    Parameters:
+        applicant_docs (List[str]): Text contents of applicant documents to evaluate; documents are combined in order and may be truncated if excessively long.
+        evaluation_prompt (str): The saved evaluation prompt that defines evaluation criteria and instructions for the model.
+        controls_json (Dict[str, Any]): Reference controls/framework as a JSON-serializable dictionary used for context during evaluation.
+    
     Returns:
-        Dictionary containing evaluation report with scores/compliance status
+        Dict[str, Any]: The evaluation report parsed from the model's response. On successful JSON parsing this is the structured report (scores, compliance status, etc.). If the model returns non-JSON text that cannot be parsed, returns a fallback dictionary with keys `report_type` set to `"text"`, `content` containing the raw response, and `error` describing the JSON parse failure.
+    
+    Raises:
+        ValueError: If the OPENROUTER_API_KEY environment variable is missing, if the API response is missing or empty, or if the model returns empty content.
     """
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:

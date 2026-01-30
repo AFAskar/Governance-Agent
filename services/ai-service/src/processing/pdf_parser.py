@@ -9,17 +9,17 @@ from pathlib import Path
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     """
-    Extract text from a PDF file with support for multilingual content.
+    Extracts and returns text from the PDF at the given path, preserving page breaks as two newline separators.
     
-    Args:
-        pdf_path: Path to the PDF file
-        
+    Parameters:
+        pdf_path (str): Path to the PDF file to extract.
+    
     Returns:
-        Extracted text as a string
-        
+        str: Concatenated text extracted from all pages, with pages separated by two newline characters.
+    
     Raises:
-        FileNotFoundError: If PDF file doesn't exist
-        ValueError: If PDF is corrupted or cannot be read
+        FileNotFoundError: If the file at `pdf_path` does not exist.
+        ValueError: If no text could be extracted from the PDF.
     """
     pdf_path_obj = Path(pdf_path)
     

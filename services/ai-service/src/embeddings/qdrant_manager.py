@@ -25,16 +25,18 @@ def initialize_qdrant(
     url: Optional[str] = None
 ) -> QdrantClient:
     """
-    Initialize Qdrant client and create collection if it doesn't exist.
+    Initialize and return a configured Qdrant client and ensure the specified collection exists.
     
-    Args:
-        collection_name: Name of the collection
-        vector_size: Size of the embedding vectors
-        path: Local path for Qdrant (default: config/vector_db)
-        url: Qdrant server URL (for remote/cloud)
-        
+    If neither `path` nor `url` is provided, a default local directory under the project config (config/vector_db) is used. If `url` is provided the client targets a remote Qdrant server; otherwise a local client is used. If the named collection is missing, it will be created with vectors of size `vector_size` using cosine distance.
+    
+    Parameters:
+        collection_name (str): Name of the Qdrant collection to use or create.
+        vector_size (int): Dimensionality of vectors stored in the collection.
+        path (Optional[str]): Local filesystem path for a local Qdrant instance; when omitted and `url` is not provided, a default config/vector_db path is used.
+        url (Optional[str]): Remote Qdrant server URL; when provided the client will connect remotely.
+    
     Returns:
-        QdrantClient instance
+        QdrantClient: A Qdrant client configured for the requested collection.
     """
     # Default to local path if neither path nor url provided
     if path is None and url is None:
@@ -74,12 +76,13 @@ def create_collection(
     vector_size: int
 ) -> None:
     """
-    Create a new collection in Qdrant.
+    Create a Qdrant collection configured for cosine similarity.
     
-    Args:
-        client: QdrantClient instance
-        collection_name: Name of the collection
-        vector_size: Size of the embedding vectors
+    Creates a collection named `collection_name` with vectors of length `vector_size` and sets the distance metric to COSINE.
+    
+    Parameters:
+        collection_name (str): Name of the collection to create.
+        vector_size (int): Length of embedding vectors to store in the collection.
     """
     client.create_collection(
         collection_name=collection_name,
@@ -97,13 +100,22 @@ def add_documents(
     embeddings: List[List[float]]
 ) -> None:
     """
-    Add documents with embeddings to Qdrant collection.
+    Upsert document chunks and their embeddings into the specified Qdrant collection.
     
-    Args:
-        client: QdrantClient instance
-        collection_name: Name of the collection
-        documents: List of document dictionaries (from chunker)
-        embeddings: List of embedding vectors
+    Constructs a payload for each document and inserts points into the collection in batches. Each point ID is derived deterministically from the document's `chunk_id` using a fixed namespace, ensuring stable identifiers across runs.
+    
+    Parameters:
+        client (QdrantClient): Qdrant client instance to use for upserts.
+        collection_name (str): Target Qdrant collection name.
+        documents (List[Dict]): List of document chunk dictionaries. Expected keys:
+            - "text" (str): Chunk text (optional, defaults to empty string).
+            - "chunk_id" (str): Chunk identifier (optional; a UUID will be generated if missing).
+            - "framework_name" (str): Origin framework name (optional, defaults to "unknown").
+            - "metadata" (dict): Additional payload fields to include (optional).
+        embeddings (List[List[float]]): Corresponding list of embedding vectors for each document.
+    
+    Raises:
+        ValueError: If the number of documents does not match the number of embeddings.
     """
     if len(documents) != len(embeddings):
         raise ValueError(f"Number of documents ({len(documents)}) must match number of embeddings ({len(embeddings)})")
@@ -146,25 +158,21 @@ def search_similar(
     score_threshold: Optional[float] = None
 ) -> List[Dict]:
     """
-    Search for similar documents in Qdrant collection.
+    Finds nearest documents in the specified Qdrant collection for a given query embedding.
     
-    For local Qdrant, uses query_points with Query object.
-    This is the correct method for local mode.
+    Filters results by an optional minimum similarity score.
     
-    Args:
-        client: QdrantClient instance
-        collection_name: Name of the collection
-        query_embedding: Query embedding vector
-        top_k: Number of results to return
-        score_threshold: Minimum similarity score threshold
-        
+    Parameters:
+        collection_name (str): Name of the Qdrant collection to query.
+        query_embedding (List[float]): Embedding vector used as the search query.
+        top_k (int): Maximum number of results to return.
+        score_threshold (Optional[float]): Minimum similarity score required for returned results.
+    
     Returns:
-        List of dictionaries with search results:
-        {
-            "text": str,
-            "score": float,
-            "metadata": dict
-        }
+        List[Dict]: A list of result dictionaries. Each dictionary contains:
+            - "text" (str): The stored document text.
+            - "score" (float): The similarity score for the result.
+            - "metadata" (dict): Payload metadata including "chunk_id", "framework_name", and any additional fields.
     """
     try:
         # Use query_points - can accept vector directly as list[float]
@@ -256,11 +264,17 @@ def fetch_by_filter(
     limit: int = 1000,
 ) -> List[Dict[str, Any]]:
     """
-    Fetch points matching a filter (no vector search). Used for exact lookups
-    e.g. control_id + source=json.
-
+    Retrieve points that match the given payload filter from a Qdrant collection.
+    
+    Parameters:
+        query_filter (Filter): Payload filter to apply when selecting points.
+        limit (int): Maximum number of points to return (default 1000).
+    
     Returns:
-        List of {"text": str, "metadata": dict} for each matching point.
+        List[Dict[str, Any]]: A list of dictionaries for each matching point with keys:
+            - "text" (str): The stored text (empty string if missing).
+            - "metadata" (dict): Metadata dictionary containing "chunk_id", "framework_name"
+              (defaults to "unknown" if missing), and any other payload fields.
     """
     results, _ = client.scroll(
         collection_name=collection_name,
@@ -293,10 +307,21 @@ def search_similar_filtered(
     score_threshold: Optional[float] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Vector similarity search with optional payload filter.
-
+    Perform a vector similarity search in a Qdrant collection using a query embedding with optional payload filtering.
+    
+    Parameters:
+        client (QdrantClient): Qdrant client used to run the query.
+        collection_name (str): Name of the collection to search.
+        query_embedding (List[float]): Query vector used for nearest-neighbor search.
+        top_k (int): Maximum number of results to return.
+        query_filter (Optional[Filter]): Optional payload filter to restrict returned points.
+        score_threshold (Optional[float]): Optional minimum score threshold to include a result.
+    
     Returns:
-        List of {"text": str, "score": float, "metadata": dict}.
+        List[Dict[str, Any]]: A list of result dictionaries. Each dictionary contains:
+            - `text` (str): The stored text payload for the point (empty string if missing).
+            - `score` (float): The similarity score for the match.
+            - `metadata` (dict): Payload fields with at least `chunk_id` and `framework_name` (defaults to "unknown"), plus any other payload keys.
     """
     kwargs: Dict[str, Any] = {
         "collection_name": collection_name,
@@ -335,10 +360,6 @@ def delete_collection(
     collection_name: str
 ) -> None:
     """
-    Delete a collection from Qdrant.
-
-    Args:
-        client: QdrantClient instance
-        collection_name: Name of the collection to delete
+    Delete the specified collection from the Qdrant instance.
     """
     client.delete_collection(collection_name=collection_name)

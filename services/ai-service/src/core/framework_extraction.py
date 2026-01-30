@@ -20,15 +20,20 @@ def extract_controls_from_framework(
     pdf_text: str, framework_name: str, use_fallback_prompt: bool = False
 ) -> Dict[str, Any]:
     """
-    Extract compliance controls from PDF text using LLM.
-
-    Args:
-        pdf_text: Extracted text from framework PDF
-        framework_name: Name of the framework
-        use_fallback_prompt: If True, use a stricter prompt that forbids empty controls (for retries).
-
+    Extract compliance controls from text extracted from a framework PDF.
+    
+    Parameters:
+        pdf_text (str): Full text extracted from the PDF to be analyzed.
+        framework_name (str): Name of the framework being processed; included in the returned result.
+        use_fallback_prompt (bool): When True, uses a stricter retry prompt that enforces extracting at least one control
+            (used for retry attempts when initial extraction yields no controls).
+    
     Returns:
-        Dictionary with controls array
+        result (Dict[str, Any]): Dictionary with keys:
+            - "framework_name" (str): The provided framework_name.
+            - "controls" (List[Dict[str, Any]]): List of extracted control objects; each control is a dict expected to
+              contain fields such as `id`, `description`, `calculation`, `threshold`, and `scale`. The list is empty
+              when no extractable controls are found or parsing fails.
     """
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
@@ -187,20 +192,25 @@ def extract_controls_from_pdfs(
     pdf_paths_list: List[str], framework_name: str
 ) -> List[List[Dict[str, Any]]]:
     """
-    Extract controls from multiple PDFs in parallel.
-    Each PDF gets one LLM call.
-
-    Args:
-        pdf_paths_list: List of PDF file paths
-        framework_name: Name of the framework
-
+    Extract controls from each PDF path in pdf_paths_list using the LLM in parallel.
+    
     Returns:
-        List of controls arrays (one per PDF)
+        List[List[Dict[str, Any]]]: A list where each element is the extracted controls list for the corresponding PDF in pdf_paths_list. Empty list for PDFs that failed or produced no controls.
     """
     MAX_RETRIES = 3
 
     def extract_pdf(pdf_path: str) -> List[Dict[str, Any]]:
-        """Extract controls from a single PDF. Retries with fallback prompt if empty."""
+        """
+        Extracts compliance controls from a single PDF file.
+        
+        Attempts to extract text from the PDF and parse controls for the current framework. If the initial extraction yields no controls, retries up to MAX_RETRIES using a stricter fallback prompt to force extraction. Returns an empty list if no text is found, if extraction fails after retries, or if an exception occurs.
+        
+        Parameters:
+            pdf_path (str): Path to the PDF file to process.
+        
+        Returns:
+            List[Dict[str, Any]]: A list of extracted control objects (possibly empty).
+        """
         try:
             pdf_text = extract_text_from_pdf(pdf_path)
             if not (pdf_text and pdf_text.strip()):

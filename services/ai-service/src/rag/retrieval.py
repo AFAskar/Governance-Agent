@@ -56,18 +56,17 @@ def retrieve_control_details(
     top_k_pdf: int = 5,
 ) -> Dict[str, Any]:
     """
-    Retrieve all details for a control: JSON cards (filtered by control_id) + top-k
-    PDF chunks (semantic search). Safe to use as an agent tool.
-
-    Args:
-        control_id: Control identifier (e.g. DSI.OE.01, DG.1).
-        framework_name: Framework name (e.g. NDI) matching the indexed collection.
-        top_k_pdf: Max PDF chunks to return. Default 5.
-
+    Retrieve JSON control cards and relevant PDF passages for a given control identifier from a framework-specific RAG collection.
+    
+    Parameters:
+        control_id (str): Control identifier (e.g., "DSI.OE.01", "DG.1").
+        framework_name (str): Name of the indexed framework/collection (e.g., "NDI").
+        top_k_pdf (int): Maximum number of PDF chunks to return.
+    
     Returns:
-        {
-            "json_cards": [{"text": str, "metadata": dict}, ...],
-            "pdf_chunks": [{"text": str, "score": float, "metadata": dict}, ...],
+        dict: {
+            "json_cards": List[dict] — each dict contains `text` (str) and `metadata` (dict) for JSON-based control cards;
+            "pdf_chunks": List[dict] — each dict contains `text` (str), `score` (float), and `metadata` (dict) for retrieved PDF passages.
         }
     """
     embedder = get_shared_embedder()

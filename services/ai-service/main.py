@@ -49,7 +49,11 @@ def setup_framework(pdf_paths: str | list[str], framework_name: str) -> list[Pat
 
 
 def main():
-    """Main entry point."""
+    """
+    Prints a CLI header, shows configured input/output directories, and displays a usage example for the framework extraction tool.
+    
+    The function retrieves input paths via get_input_paths(), prints a banner and the locations for framework and applicant PDFs and framework outputs, and prints a sample call for setup_framework.
+    """
     print("\n" + "=" * 60)
     print("Compliance Framework Extraction System")
     print("=" * 60)

@@ -18,9 +18,20 @@ async def setup_framework(
     files: list[UploadFile] = File(..., description="PDF files (same order as section_names)"),
 ) -> SetupFrameworkResponse:
     """
-    Setup a new framework by extracting controls from multiple PDFs.
-    Each PDF has a section name; controls are saved as config/frameworks/{framework_name}/{section_name}.json.
-    Send section_names as one string: comma-separated names, one per file, in the same order as files.
+    Initialize a framework by extracting controls from multiple uploaded PDF sections.
+    
+    Section names must be provided as a single comma-separated string with one name per file, in the same order as the uploaded files.
+    
+    Parameters:
+        framework_name: Framework identifier.
+        section_names: Comma-separated section names (one name per PDF, same order as `files`).
+        files: Uploaded PDF files corresponding to `section_names`.
+    
+    Returns:
+        SetupFrameworkResponse: Summary of the created framework, including `framework_name`, `total_controls`, `sections`, and `created_at`.
+    
+    Raises:
+        HTTPException: Status 400 for input validation errors (mismatched counts between section names and files, empty or non-PDF uploads, empty file bodies, or empty section names).
     """
     section_names_list = [s.strip() for s in section_names.split(",") if s.strip()]
     if len(section_names_list) != len(files):

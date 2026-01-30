@@ -15,30 +15,24 @@ def chunk_text(
     preserve_sentences: bool = True
 ) -> List[Dict]:
     """
-    Split text into fixed-size chunks with overlap, preserving semantic boundaries.
+    Split long text into overlapping chunks that prefer paragraph or sentence boundaries.
     
-    Improved version that:
-    - Uses larger default chunk sizes (1500 chars) for better context
-    - Preserves paragraph boundaries when possible
-    - Filters out chunks that are mostly formatting artifacts
-    - Better sentence boundary detection with larger lookback window
+    The function produces sequential text segments of up to `chunk_size` characters with `overlap` between adjacent segments. When `preserve_sentences` is True the function attempts to end chunks at paragraph breaks (double newlines) or sentence boundaries within a lookback window; resulting chunks that are mostly formatting artifacts are discarded.
     
-    Args:
-        text: Text to chunk
-        chunk_size: Size of each chunk in characters (default: 1500)
-        overlap: Number of characters to overlap between chunks (default: 200)
-        framework_name: Optional framework name for metadata
-        preserve_sentences: If True, try to break at sentence boundaries
-        
+    Parameters:
+        text (str): Input text to split.
+        chunk_size (int): Maximum number of characters per chunk (default 1500).
+        overlap (int): Number of characters to overlap between consecutive chunks (default 200).
+        framework_name (Optional[str]): Optional label included in each chunk's metadata; "unknown" if omitted.
+        preserve_sentences (bool): If True, prefer paragraph or sentence boundaries when choosing chunk end positions.
+    
     Returns:
-        List of dictionaries, each containing:
-        {
-            "text": str,
-            "chunk_id": int,
-            "chunk_index": int,
-            "framework_name": str,
-            "metadata": dict
-        }
+        List[dict]: A list of chunk dictionaries. Each dictionary contains:
+            - "text" (str): Chunk content.
+            - "chunk_id" (int): Sequential chunk identifier.
+            - "chunk_index" (int): Alias of chunk_id.
+            - "framework_name" (str): Provided framework name or "unknown".
+            - "metadata" (dict): Includes "start_char", "end_char", "length", "chunk_size", and "overlap".
     """
     if not text or len(text.strip()) == 0:
         return []
@@ -133,14 +127,16 @@ def chunk_text(
 
 def _is_valid_chunk(text: str, min_meaningful_chars: int = 100) -> bool:
     """
-    Check if a chunk is valid (not mostly formatting artifacts).
+    Determine whether a text chunk contains sufficient meaningful content versus formatting artifacts.
     
-    Args:
-        text: Chunk text to validate
-        min_meaningful_chars: Minimum number of meaningful characters required
-        
+    Accepts a chunk only if it has at least one meaningful line, the ratio of meaningful characters to total characters is at least 0.3, and the total meaningful characters are at least min_meaningful_chars. Chunks shorter than 20 characters are rejected.
+    
+    Parameters:
+        text: Chunk text to evaluate.
+        min_meaningful_chars: Minimum count of meaningful characters required for acceptance.
+    
     Returns:
-        True if chunk is valid, False if it's mostly formatting
+        True if the chunk is considered meaningful, False otherwise.
     """
     if not text or len(text) < 20:
         return False
@@ -195,15 +191,22 @@ def chunk_text_by_sentences(
     framework_name: Optional[str] = None
 ) -> List[Dict]:
     """
-    Chunk text by sentences instead of fixed character size.
+    Split text into chunks where each chunk contains a fixed number of sentences.
     
-    Args:
-        text: Text to chunk
-        sentences_per_chunk: Number of sentences per chunk
-        framework_name: Optional framework name for metadata
-        
+    Sentences are detected by runs of sentence-ending punctuation followed by whitespace (e.g., ". ", "! ", "? ") or by double newlines; empty fragments are ignored.
+    
+    Parameters:
+        text (str): Input text to split.
+        sentences_per_chunk (int): Number of sentences to include in each chunk.
+        framework_name (Optional[str]): Optional label stored in each chunk's `framework_name` field; defaults to `"unknown"` when not provided.
+    
     Returns:
-        List of chunk dictionaries
+        List[Dict]: A list of chunk dictionaries. Each dictionary contains:
+            - text: chunk text (joined sentences).
+            - chunk_id: numeric chunk identifier.
+            - chunk_index: numeric chunk index (same as `chunk_id`).
+            - framework_name: provided framework name or `"unknown"`.
+            - metadata: dict with `sentence_start`, `sentence_end`, `sentences_per_chunk`, and `length` (character count of the chunk text).
     """
     # Split into sentences
     sentence_pattern = r'[.!?]+\s+|[\n]{2,}'

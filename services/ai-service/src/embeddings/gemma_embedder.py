@@ -28,14 +28,12 @@ class GemmaEmbedder:
         token: Optional[str] = None
     ):
         """
-        Initialize EmbeddingGemma embedder.
+        Create a GemmaEmbedder configured to load the specified HuggingFace embedding model.
         
-        Args:
-            model_name: HuggingFace model name (default: google/embeddinggemma-300m)
-                       This is the 300M parameter embedding model designed for embeddings.
-                       Model page: https://huggingface.co/google/embeddinggemma-300m
-            device: Device to use ('cpu', 'cuda', or None for auto-detection)
-            token: HuggingFace token for gated models (or set HF_TOKEN env var)
+        Parameters:
+            model_name (str): HuggingFace model identifier to load (default: "google/embeddinggemma-300m").
+            device (Optional[str]): Target device ("cpu", "cuda"), or None to auto-detect CUDA if available then "cpu".
+            token (Optional[str]): HuggingFace access token for gated models; if not provided, the `HF_TOKEN` or `HUGGINGFACE_TOKEN` environment variable is used.
         """
         self.model_name = model_name
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +42,17 @@ class GemmaEmbedder:
         self._load_model()
     
     def _load_model(self):
-        """Load the EmbeddingGemma model using sentence-transformers."""
+        """
+        Load and initialize the SentenceTransformer embedding model, handling offline mode and optional HuggingFace authentication.
+        
+        This method:
+        - Respects HF_HUB_OFFLINE (environment) to load local files only.
+        - If a token is provided and login has not yet been performed, performs a one-time HuggingFace login.
+        - Builds model loading kwargs (including token when appropriate) and instantiates SentenceTransformer for self.model.
+        
+        Raises:
+            RuntimeError: If the model cannot be loaded. If the failure appears related to gated access or HTTP 401/403, the exception message will include actionable steps to obtain a HuggingFace token and accept the model license.
+        """
         global _LOGIN_DONE
         offline = os.getenv("HF_HUB_OFFLINE", "").strip().lower() == "1"
         local_files_only = offline
@@ -91,26 +99,27 @@ class GemmaEmbedder:
     
     def embed_text(self, text: str) -> List[float]:
         """
-        Generate embedding for a single text.
+        Produce an embedding for a single input string.
         
-        Args:
-            text: Text to embed
-            
+        Parameters:
+            text (str): The input text to embed.
+        
         Returns:
-            Embedding vector as list of floats
+            List[float]: Embedding vector for the provided text.
         """
         return self.embed_batch([text])[0]
     
     def embed_batch(self, texts: List[str], batch_size: int = 32) -> List[List[float]]:
         """
-        Generate embeddings for a batch of texts.
+        Produce embeddings for a list of texts.
         
-        Args:
-            texts: List of texts to embed
-            batch_size: Batch size for processing
-            
+        Parameters:
+            texts (List[str]): Input texts to convert into embeddings.
+            batch_size (int): Maximum number of texts processed at once.
+        
         Returns:
-            List of embedding vectors
+            List[List[float]]: A list where each element is the embedding vector (list of floats)
+            corresponding to the input text at the same index.
         """
         if not texts:
             return []
@@ -128,10 +137,13 @@ class GemmaEmbedder:
     
     def get_embedding_dim(self) -> int:
         """
-        Get the dimension of embeddings produced by this model.
+        Get the dimensionality of embedding vectors produced by the loaded model.
         
         Returns:
-            Embedding dimension (768 for EmbeddingGemma-300M)
+            int: Number of dimensions in each embedding vector (for example, 768 for google/embeddinggemma-300m).
+        
+        Raises:
+            RuntimeError: If the underlying model is not loaded.
         """
         if self.model is None:
             raise RuntimeError("Model not loaded")
@@ -145,14 +157,14 @@ def load_gemma_embedder(
     token: Optional[str] = None
 ) -> GemmaEmbedder:
     """
-    Load and return a Gemma embedder instance.
+    Create a GemmaEmbedder configured for the specified model, device, and HuggingFace token.
     
-    Args:
-        model_name: HuggingFace model name (default: google/embeddinggemma-300m)
-        device: Device to use ('cpu', 'cuda', or None for auto-detection)
-        token: HuggingFace token for gated models (or set HF_TOKEN env var)
-        
+    Parameters:
+        model_name (str): HuggingFace model identifier to load (default: "google/embeddinggemma-300m").
+        device (Optional[str]): Device to run the model on; use "cpu", "cuda", or None to auto-detect.
+        token (Optional[str]): HuggingFace access token for gated models; if omitted, the function will read HF_TOKEN or HUGGINGFACE_TOKEN from the environment.
+    
     Returns:
-        GemmaEmbedder instance
+        GemmaEmbedder: An initialized GemmaEmbedder instance ready to produce embeddings.
     """
     return GemmaEmbedder(model_name=model_name, device=device, token=token)
