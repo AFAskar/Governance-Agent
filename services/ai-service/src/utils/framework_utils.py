@@ -5,7 +5,7 @@ Handles per-PDF extraction saves, input paths, and RAG helpers.
 
 import json
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _project_root() -> Path:
@@ -13,17 +13,21 @@ def _project_root() -> Path:
 
 
 def save_extraction_json(
-    framework_name: str, pdf_path: str, controls_json: Dict[str, Any]
+    framework_name: str,
+    pdf_path: str,
+    controls_json: Dict[str, Any],
+    custom_name: Optional[str] = None,
 ) -> Path:
     """
     Save extracted controls for a single PDF as JSON under config/frameworks/{framework_name}/.
 
-    Filename is the PDF stem + .json (e.g. section-a.pdf -> section-a.json).
+    Filename is custom_name (if provided) or the PDF stem + .json (e.g. section-a.pdf -> section-a.json).
 
     Args:
         framework_name: Name of the framework (used for directory name)
-        pdf_path: Path to the source PDF (used for filename)
+        pdf_path: Path to the source PDF (used for filename when custom_name is not set)
         controls_json: Dictionary with framework_name and controls
+        custom_name: Optional name for the JSON file (e.g. section name). If set, used instead of PDF stem.
 
     Returns:
         Path to the written JSON file
@@ -33,7 +37,7 @@ def save_extraction_json(
     framework_dir = base_dir / framework_name
     framework_dir.mkdir(parents=True, exist_ok=True)
 
-    stem = Path(pdf_path).stem
+    stem = Path(custom_name).name if custom_name else Path(pdf_path).stem
     out_path = framework_dir / f"{stem}.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(controls_json, f, indent=2, ensure_ascii=False)

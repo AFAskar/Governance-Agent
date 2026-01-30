@@ -1,13 +1,17 @@
 """
-Framework Extractor Module
-Extracts compliance controls from PDF text using LLM
+Framework Extraction Module
+Extracts compliance controls from PDF text (LLM) and from multiple PDFs in parallel.
 """
 
 import json
-from openai import OpenAI
-from typing import Dict, Any
 import os
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List
+
 from dotenv import load_dotenv
+from openai import OpenAI
+
+from src.processing import extract_text_from_pdf
 
 load_dotenv()
 
@@ -83,7 +87,7 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
             "Never return an empty 'controls' array unless the document has no extractable content. "
             "Return ONLY valid JSON with a 'controls' array. Each control must have exactly: id, description, calculation, threshold, scale."
         )
-        temperature = 0.5
+        temperature = 0.15
     else:
         extraction_prompt = f"""
 ### ROLE
@@ -102,8 +106,9 @@ Extract compliance controls, specifications, and performance metrics from the pr
 Return ONLY a valid JSON object matching the schema above. No other keys or fields.
 """
         system_content = "You are a Senior Regulatory Data Architect. Extract compliance controls. Return ONLY valid JSON with a 'controls' array. Each control must have exactly: id, description, calculation, threshold, scale."
-        temperature = 0.3
+        temperature = 0.15
 
+    # Low temperature + fixed seed for reproducible, consistent extraction
     response = client.chat.completions.create(
         model="openai/gpt-4.1",
         messages=[
@@ -111,45 +116,47 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
             {"role": "user", "content": extraction_prompt},
         ],
         temperature=temperature,
+        seed=42,
         response_format={"type": "json_object"}
     )
-    
+
     result_text = response.choices[0].message.content
-    print("\n" + "="*60)
-    print("EXTRACTION RESPONSE:")
-    print("="*60)
-    print(result_text)
-    print("="*60 + "\n")
-    
+    if not result_text or not str(result_text).strip():
+        print("API returned empty response (possible rate limit or error)")
+        return {"framework_name": framework_name, "controls": []}
+
+    result_text = str(result_text).strip()
+
     # Try to extract JSON from markdown code blocks first
     if "```json" in result_text:
         json_start = result_text.find("```json") + 7
         json_end = result_text.find("```", json_start)
         if json_end > json_start:
             result_text = result_text[json_start:json_end].strip()
-    
+
     # Parse JSON with error handling
     try:
         result_json = json.loads(result_text)
     except json.JSONDecodeError as e:
-        print(f"Warning: JSON parsing error: {e}")
+        preview = (result_text or "")[:200]
+        print(f"Warning: JSON parsing error: {e}. Raw response (len={len(result_text or '')}): {preview!r}")
         # Try to fix truncated JSON by finding last complete structure
         last_brace = result_text.rfind('}')
         last_bracket = result_text.rfind(']')
         end_pos = max(last_brace, last_bracket)
-        
+
         if end_pos > 0:
             try:
                 result_json = json.loads(result_text[:end_pos + 1])
                 print("Successfully parsed truncated JSON")
-            except:
+            except Exception:
                 print("Could not parse JSON, returning empty controls")
                 return {"framework_name": framework_name, "controls": []}
         else:
             return {"framework_name": framework_name, "controls": []}
-    
+
     # Find controls array - check common keys first
-    controls_array = []
+    controls_array: List[Dict[str, Any]] = []
     if isinstance(result_json, list):
         controls_array = result_json
     elif isinstance(result_json, dict):
@@ -158,19 +165,64 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
             if key in result_json and isinstance(result_json[key], list):
                 controls_array = result_json[key]
                 break
-        
+
         # If not found, find any array
         if not controls_array:
             for value in result_json.values():
                 if isinstance(value, list) and len(value) > 0:
                     controls_array = value
                     break
-        
+
         # If still not found and it's a single control object, wrap it in array
         if not controls_array and 'id' in result_json:
             controls_array = [result_json]
-    
+
     return {
         "framework_name": framework_name,
         "controls": controls_array
     }
+
+
+def extract_controls_from_pdfs(
+    pdf_paths_list: List[str], framework_name: str
+) -> List[List[Dict[str, Any]]]:
+    """
+    Extract controls from multiple PDFs in parallel.
+    Each PDF gets one LLM call.
+
+    Args:
+        pdf_paths_list: List of PDF file paths
+        framework_name: Name of the framework
+
+    Returns:
+        List of controls arrays (one per PDF)
+    """
+    MAX_RETRIES = 3
+
+    def extract_pdf(pdf_path: str) -> List[Dict[str, Any]]:
+        """Extract controls from a single PDF. Retries with fallback prompt if empty."""
+        try:
+            pdf_text = extract_text_from_pdf(pdf_path)
+            if not (pdf_text and pdf_text.strip()):
+                print(f"Skipping {pdf_path}: no text extracted")
+                return []
+            controls_json = extract_controls_from_framework(pdf_text, framework_name)
+            controls = controls_json.get("controls", [])
+            retries = 0
+            while len(controls) == 0 and retries < MAX_RETRIES:
+                retries += 1
+                print(f"Empty controls for {pdf_path}, retry {retries}/{MAX_RETRIES} with fallback prompt")
+                controls_json = extract_controls_from_framework(
+                    pdf_text, framework_name, use_fallback_prompt=True
+                )
+                controls = controls_json.get("controls", [])
+            print(f"Controls extracted from {pdf_path}")
+            return controls
+        except Exception as e:
+            print(f"Error extracting from {pdf_path}: {e}")
+            return []
+
+    with ThreadPoolExecutor(max_workers=len(pdf_paths_list)) as executor:
+        controls_arrays = list(executor.map(extract_pdf, pdf_paths_list))
+
+    return controls_arrays

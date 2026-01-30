@@ -1,20 +1,21 @@
 """
 Main entry point for the Compliance Framework Extraction System.
-Extract controls from each PDF and save one JSON per PDF (no compose, no prompt).
+CLI: extract controls from each PDF and save one JSON per PDF (no compose, no prompt).
+Uses the same service layer as the API.
 """
 
-from pathlib import Path
 import glob
+from pathlib import Path
 
-from src.core.framework_consolidator import extract_controls_from_pdfs
-from src.utils import save_extraction_json, get_input_paths
+from src.services import FrameworkService
+from src.utils import get_input_paths
 
 
 def setup_framework(pdf_paths: str | list[str], framework_name: str) -> list[Path]:
     """
     Extract controls from each PDF and save one JSON per PDF under config/frameworks/{framework_name}/.
 
-    Each file is named after the source PDF (e.g. section-a.pdf -> section-a.json).
+    Each file is named after the source PDF stem (e.g. section-a.pdf -> section-a.json).
     No composition or evaluation prompt generation.
 
     Args:
@@ -36,13 +37,15 @@ def setup_framework(pdf_paths: str | list[str], framework_name: str) -> list[Pat
     if not pdf_paths_list:
         raise ValueError(f"No PDF files found: {pdf_paths}")
 
-    controls_arrays = extract_controls_from_pdfs(pdf_paths_list, framework_name)
-    saved: list[Path] = []
-    for pdf_path, controls_array in zip(pdf_paths_list, controls_arrays):
-        obj = {"framework_name": framework_name, "controls": controls_array}
-        path = save_extraction_json(framework_name, pdf_path, obj)
-        saved.append(path)
-    return saved
+    pdf_sections = [
+        (Path(p).stem, Path(p).read_bytes())
+        for p in pdf_paths_list
+    ]
+    service = FrameworkService()
+    result = service.setup_framework(framework_name=framework_name, pdf_sections=pdf_sections)
+
+    project_root = Path(__file__).resolve().parent
+    return [project_root / s["json_path"] for s in result["sections"]]
 
 
 def main():

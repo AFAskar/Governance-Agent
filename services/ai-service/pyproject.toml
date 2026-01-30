@@ -17,4 +17,13 @@ dependencies = [
     "torch>=2.0.0",
     "sentence-transformers>=2.2.0",
     "accelerate>=0.24.0",
+    "python-multipart>=0.0.9",
+    "aiofiles>=24.0.0",
+    "fastapi>=0.128.0",
 ]
+
+[dependency-groups]
+dev = [
+    "fastapi[standard]>=0.128.0",
+]
+

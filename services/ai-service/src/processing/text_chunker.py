@@ -188,7 +188,7 @@ def _is_valid_chunk(text: str, min_meaningful_chars: int = 100) -> bool:
     
     return True
 
-
+# not used anymore
 def chunk_text_by_sentences(
     text: str,
     sentences_per_chunk: int = 5,

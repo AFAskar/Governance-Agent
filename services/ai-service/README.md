@@ -21,10 +21,9 @@ data/
 
 ```
 config/
-├── frameworks/             # Framework outputs (controls.json, evaluation_prompt.txt)
+├── frameworks/             # Framework outputs (one JSON per section)
 │   └── {framework_name}/
-│       ├── controls.json
-│       └── evaluation_prompt.txt
+│       └── {section_name}.json
 └── vector_db/             # Qdrant vector database storage
 
 data/
@@ -34,78 +33,68 @@ data/
 
 **What gets saved where:**
 - **Framework Data**: `config/frameworks/{framework_name}/`
-  - `controls.json` - Extracted compliance controls
-  - `evaluation_prompt.txt` - Generated evaluation prompt
-  
-- **Evaluation Reports**: `data/outputs/evaluations/`
-  - Format: `{framework_name}_{applicant_name}_{timestamp}.json`
-  
+  - One JSON per section (e.g. `section_name.json`) — extracted compliance controls
 - **Vector Database**: `config/vector_db/` (Qdrant local storage)
+- **Evaluation Reports**: `data/outputs/evaluations/` (when using evaluator)
 
 ## Quick Start
 
-### 1. Setup a Framework
+### CLI: Setup a Framework
 
 ```python
 from main import setup_framework
 
-# Place your framework PDF in data/inputs/frameworks/
-setup_framework(
-    'data/inputs/frameworks/my_framework.pdf',
-    'my_framework'
-)
+# Single file, list of files, or directory path
+setup_framework('data/inputs/frameworks/my_framework.pdf', 'my_framework')
+# or
+setup_framework('data/inputs/frameworks/my_framework/', 'my_framework')
 ```
 
-This will:
-- Extract controls from the PDF
-- Generate an evaluation prompt
-- Save everything to `config/frameworks/my_framework/`
+This extracts controls from each PDF and saves one JSON per PDF under `config/frameworks/{framework_name}/` (filename = PDF stem).
 
-### 2. Index Framework Documents (Optional)
+### API: Setup a Framework
 
-```python
-from main import index_framework_documents
+Run the API server (from `services/ai-service/`):
 
-# Index framework for vector search
-index_framework_documents(
-    'data/inputs/frameworks/my_framework.pdf',
-    'my_framework'
-)
+```bash
+python src/api/app.py
+# or
+python run.py
 ```
 
-### 3. Evaluate Applicant Documents
+- **Docs**: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
+- **Health**: `GET /health`
+- **Setup framework**: `POST /api/v1/frameworks/setup`
+  - Form fields: `framework_name` (string), `section_names` (list of strings), `files` (list of PDFs). Same order for section_names and files. Each PDF is saved as `config/frameworks/{framework_name}/{section_name}.json`.
 
-```python
-from main import evaluate_applicant_documents
+### Other (from `src`)
 
-# Place applicant PDFs in data/inputs/applicants/
-evaluate_applicant_documents(
-    ['data/inputs/applicants/applicant1.pdf'],
-    'my_framework',
-    applicant_name='applicant1'
-)
+- **RAG indexing**: `from src.rag import index_framework` — index framework JSON + PDFs into Qdrant.
+- **Evaluation**: `from src.core import evaluate_applicant` — evaluate applicant docs (requires external evaluation prompt and controls JSON).
+
+## Dependencies
+
+Use **uv** from the project root (`services/ai-service/`):
+
+```bash
+# Install all dependencies (after cloning or when pyproject.toml changes)
+uv sync
+
+# Add a new runtime dependency
+uv add <package>
+
+# Add FastAPI and uvicorn
+uv add fastapi uvicorn[standard]
+
+# Dev dependencies are separate: use a dependency group
+uv add --group dev pytest
 ```
 
-The evaluation report will be saved to `data/outputs/evaluations/`
-
-## Future API Integration
-
-When you build the API later, you can:
-
-1. **Upload endpoints**:
-   - `POST /api/frameworks/upload` → Save to `data/inputs/frameworks/`
-   - `POST /api/applicants/upload` → Save to `data/inputs/applicants/`
-
-2. **Processing endpoints**:
-   - `POST /api/frameworks/process` → Run `setup_framework()`
-   - `POST /api/evaluations/create` → Run `evaluate_applicant_documents()`
-
-3. **Retrieval endpoints**:
-   - `GET /api/frameworks` → List from `config/frameworks/`
-   - `GET /api/evaluations/{id}` → Load from `data/outputs/evaluations/`
+Run these in your terminal; dev dependencies stay in a separate group (e.g. `[project.optional-dependencies.dev]` or `[tool.uv]` dev-dependencies) so production installs stay lean.
 
 ## Notes
 
 - All data directories are in `.gitignore` (user uploads and generated content)
 - The directory structure is designed to be API-friendly
 - Paths are relative to the project root (`services/ai-service/`)
+- Each folder under `src/` has a `README.md` for quick context (e.g. for code agents)

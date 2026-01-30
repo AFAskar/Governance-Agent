@@ -20,6 +20,8 @@ The **Compliance Framework Extraction & RAG System** has two main pipelines:
 | **Embeddings** | Gemma embedder, Qdrant (local/remote) |
 | **RAG** | Index framework (JSON + PDF), retrieve by control ID |
 | **Utils** | Per-PDF JSON save/load, input paths, vector_db PDF resolution |
+| **API** | FastAPI app, routers (frameworks, health), Pydantic models |
+| **Services** | Orchestration (FrameworkService for setup_framework) |
 
 **Removed / obsolete**: `prompts/` directory, `compose_master_framework`, `save_framework_data`, `load_framework_data`, `list_saved_frameworks`, `save_evaluation_report`, `generate_evaluation_prompt`. Section organization and multi-PDF validation flows are no longer used.
 
@@ -29,10 +31,18 @@ The **Compliance Framework Extraction & RAG System** has two main pipelines:
 
 ```
 src/
+├── api/                       # FastAPI application layer
+│   ├── app.py                 # FastAPI app, CORS, exception handlers
+│   ├── routers/
+│   │   ├── frameworks.py      # POST /api/v1/frameworks/setup
+│   │   └── health.py          # GET /health
+│   └── models/
+│       ├── requests.py        # (form/file validated in routers)
+│       └── responses.py       # ControlSummary, SetupFrameworkResponse, ErrorResponse, ExtractionError
+│
 ├── core/
 │   ├── evaluator.py           # Evaluate applicant docs vs framework (uses external prompt)
-│   ├── framework_extractor.py # LLM extraction: PDF text → controls JSON
-│   └── framework_consolidator.py # Parallel PDF extraction + retry on empty
+│   └── framework_extraction.py # extract_controls_from_framework + extract_controls_from_pdfs
 │
 ├── processing/
 │   ├── pdf_parser.py          # extract_text_from_pdf
@@ -48,15 +58,18 @@ src/
 │   ├── ingestion.py           # index_framework (JSON + PDF → Qdrant)
 │   └── retrieval.py           # retrieve_control_details, RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA
 │
+├── services/
+│   └── framework_service.py   # FrameworkService.setup_framework (orchestration)
+│
 ├── utils/
-│   └── framework_utils.py     # save_extraction_json, get_input_paths, list_framework_jsons,
-│                              # get_vector_db_pdf_paths
+│   └── framework_utils.py     # save_extraction_json (custom_name), get_input_paths,
+│                              # list_framework_jsons, get_vector_db_pdf_paths
 │
 ├── __init__.py                # Package exports
 └── ARCHITECTURE.md            # This file
 ```
 
-**Entry point**: `main.py` (project root) — `setup_framework()`, `get_input_paths()`.
+**Entry points**: `main.py` (CLI) — `setup_framework()`, `get_input_paths()`. `python src/api/app.py` or `python run.py` — API server.
 
 ---
 
@@ -64,39 +77,18 @@ src/
 
 ### Core (`src/core/`)
 
-#### `framework_extractor.py`
+#### `framework_extraction.py`
 
-**Purpose**: Extract compliance controls from raw PDF text using LLM (OpenRouter).
+**Purpose**: Extract compliance controls from PDF text (LLM) and from multiple PDFs in parallel.
 
-**Key function**: `extract_controls_from_framework(pdf_text, framework_name, use_fallback_prompt=False) → dict`
-
-- Returns `{"framework_name": str, "controls": [ {...}, ... ]}`.
-- Each control has **exactly**: `id`, `description`, `calculation`, `threshold`, `scale` (strict JSON schema).
-- `use_fallback_prompt=True`: stricter prompt that forbids empty controls (used for retries).
+**Key functions**:
+- `extract_controls_from_framework(pdf_text, framework_name, use_fallback_prompt=False) → dict` — LLM extraction (OpenRouter). Returns `{"framework_name": str, "controls": [ {...}, ... ]}`. Each control has **exactly**: `id`, `description`, `calculation`, `threshold`, `scale`. `use_fallback_prompt=True` for retries (stricter prompt).
+- `extract_controls_from_pdfs(pdf_paths_list, framework_name) → list[list[dict]]` — Parallel extraction; one LLM call per PDF; retries with fallback prompt if empty (up to 2 retries). Uses `ThreadPoolExecutor`.
 
 **When to modify**:
-- Change extraction prompt or JSON schema.
-- Switch LLM model (currently `openai/gpt-4.1` via OpenRouter).
-- Adjust temperature (0.3 normal, 0.5 fallback) or response handling.
+- Change extraction prompt or JSON schema; switch LLM (currently `openai/gpt-4.1`); adjust temperature or retry logic.
 
-**Dependencies**: `openai`, `python-dotenv`. Requires `OPENROUTER_API_KEY`.
-
----
-
-#### `framework_consolidator.py`
-
-**Purpose**: Run extraction over multiple PDFs in parallel; retry with fallback prompt if a PDF yields no controls.
-
-**Key function**: `extract_controls_from_pdfs(pdf_paths_list, framework_name) → list[list[dict]]`
-
-- One LLM call per PDF. Uses `ThreadPoolExecutor`.
-- If a PDF returns empty controls, retries up to `MAX_RETRIES` (2) with `use_fallback_prompt=True`.
-
-**When to modify**:
-- Change parallelism (e.g. `max_workers`).
-- Adjust retry count or retry logic.
-
-**Dependencies**: `framework_extractor`, `processing.extract_text_from_pdf`.
+**Dependencies**: `openai`, `python-dotenv`, `OPENROUTER_API_KEY`; `processing.extract_text_from_pdf`.
 
 ---
 
@@ -246,12 +238,34 @@ os.environ["HF_HUB_OFFLINE"] = "1"  # Set to "0" for first-time model download.
 #### `framework_utils.py`
 
 **Key functions**:
-- `save_extraction_json(framework_name, pdf_path, controls_json) → Path` — save under `config/frameworks/{framework_name}/{stem}.json`.
+- `save_extraction_json(framework_name, pdf_path, controls_json, custom_name=None) → Path` — save under `config/frameworks/{framework_name}/{stem}.json`. Use `custom_name` for section name when provided; otherwise PDF stem.
 - `get_input_paths() → dict` — `frameworks`, `applicants`, `vector_db` under `data/inputs/`.
 - `list_framework_jsons(framework_name) → list[(stem, dict)]` — load all `*.json` for a framework.
 - `get_vector_db_pdf_paths(framework_name) → list[Path]` — PDFs in `data/inputs/vector_db/`; prefers `vector_db/{framework_name}/` then flat `vector_db/*.pdf`.
 
 **When to modify**: Storage paths, file naming, or vector_db resolution.
+
+---
+
+### API (`src/api/`)
+
+**Purpose**: FastAPI application layer — CORS, routers, Pydantic models, exception handlers.
+
+**Key**:
+- `app.py` — FastAPI app; includes health and frameworks routers; handlers for `ExtractionError` (500), `ValueError` (400).
+- `routers/frameworks.py` — `POST /api/v1/frameworks/setup`: form `framework_name`, `section_names[]`, `files[]` (PDFs). Validates, calls `FrameworkService.setup_framework`, returns `SetupFrameworkResponse`.
+- `routers/health.py` — `GET /health` → `{"status": "ok"}`.
+- `models/responses.py` — `ControlSummary`, `SetupFrameworkResponse`, `ErrorResponse`, `ExtractionError`.
+
+**Run**: From `ai-service/`: `python src/api/app.py` or `python run.py`. Docs: `/api/docs`, `/api/redoc`.
+
+---
+
+### Services (`src/services/`)
+
+**Purpose**: Orchestration for API and CLI.
+
+**Key**: `framework_service.py` — `FrameworkService.setup_framework(framework_name, pdf_sections: list[tuple[str, bytes]])`. Saves PDFs to temp dir, calls `extract_controls_from_pdfs`, saves JSON per section via `save_extraction_json(..., custom_name=section_name)`, returns summary; cleans up temp dir. Used by `main.py` (CLI) and `POST /api/v1/frameworks/setup`.
 
 ---
 
@@ -327,7 +341,7 @@ Use `RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA` when registering as an agent tool.
 
 | Goal | Files to change |
 |------|------------------|
-| **LLM model (extraction)** | `core/framework_extractor.py` — model, base_url |
+| **LLM model (extraction)** | `core/framework_extraction.py` — model, base_url |
 | **LLM model (evaluation)** | `core/evaluator.py` |
 | **Embedding model** | `embeddings/gemma_embedder.py` — `model_name`, `get_embedding_dim` |
 | **Chunking** | `processing/text_chunker.py` — `chunk_text` params |
@@ -344,7 +358,7 @@ Use `RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA` when registering as an agent tool.
 
 | Variable | Used by | Purpose |
 |----------|---------|---------|
-| `OPENROUTER_API_KEY` | `framework_extractor.py` | LLM extraction (OpenRouter) |
+| `OPENROUTER_API_KEY` | `framework_extraction.py` | LLM extraction (OpenRouter) |
 | `OPENAI_API_KEY` | `evaluator.py` | Applicant evaluation |
 | `HF_TOKEN` or `HUGGINGFACE_TOKEN` | `gemma_embedder.py` | Gated models (when not offline) |
 | `HF_HUB_OFFLINE` | Set in `gemma_embedder.py` | `"1"` cache-only, `"0"` hub access |
@@ -394,8 +408,8 @@ from src import (
 ## Implementation Notes (memorise for edits)
 
 1. **Extraction is extract-only**: One JSON per PDF. No master composition, no evaluation prompt generation.
-2. **Control schema**: Exactly `id`, `description`, `calculation`, `threshold`, `scale`. Enforced in `framework_extractor` prompts.
-3. **Retries**: Empty extraction → up to 2 retries with `use_fallback_prompt=True` in `framework_consolidator`.
+2. **Control schema**: Exactly `id`, `description`, `calculation`, `threshold`, `scale`. Enforced in `framework_extraction` prompts.
+3. **Retries**: Empty extraction → up to 2 retries with `use_fallback_prompt=True` in `framework_extraction.extract_controls_from_pdfs`.
 4. **Embedder**: `HF_HUB_OFFLINE=1` in script by default. Set to `"0"` only for first-time download; then revert.
 5. **Shared embedder**: `get_shared_embedder()` used by both `index_framework` and `retrieve_control_details`. Single load per process.
 6. **Qdrant point IDs**: Must be UUIDs. Use `uuid.uuid5(namespace, chunk_id)`. Store `chunk_id` in payload.
