@@ -8,8 +8,13 @@ services:
     environment:
       - PYTHONPATH=/app/src
     depends_on:
-      vector_db:
-        condition: service_healthy
+      - vector_db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
 
   frontend:
@@ -22,7 +27,10 @@ services:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
     depends_on:
-      - ai_service
+      application_db:
+        condition: service_healthy
+      ai_service:
+        condition: service_healthy
     restart: unless-stopped
 
   vector_db:
@@ -41,12 +49,6 @@ services:
         target: /qdrant/config/production.yaml
     volumes:
       - qdrant_data:/qdrant/storage
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
   application_db:
     image: postgres:15
     restart: always
@@ -58,6 +60,12 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 configs:
   qdrant_config:
     content: |
