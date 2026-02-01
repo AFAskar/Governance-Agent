@@ -11,7 +11,7 @@ RUN uv sync --no-install-project --no-dev
 
 COPY services/ai-service/ ./
 
-RUN uv sync
+RUN uv sync --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
