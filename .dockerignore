@@ -1,0 +1,56 @@
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Docker volumes and data
+qdrant_data/
+db_data/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.test
+
+# Dependencies
+node_modules/
+.pnpm-store/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+.next/
+out/
+build/
+
+# Python
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.temp
