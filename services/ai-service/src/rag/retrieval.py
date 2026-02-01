@@ -21,17 +21,19 @@ RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA = {
     "function": {
         "name": "retrieve_control_details",
         "description": (
-            "Retrieve full details for a compliance control by ID. Returns structured "
-            "JSON control cards (id, description, calculation, threshold, scale) plus "
-            "relevant PDF passages from the framework. Use this when you need to look up "
-            "what a specific control requires or when evaluating evidence against a control."
+            "Retrieve full details for ONE compliance control at a time from the vector database. "
+            "Returns JSON control cards (id, description, calculation, threshold, scale) plus "
+            "relevant PDF passages. IMPORTANT: Pass exactly ONE control_id per call. Call this "
+            "tool separately for each control ID. Do NOT pass comma-separated IDs or multiple IDs. "
+            "Use the returned description, calculation, and scale to understand what the control "
+            "requires before evaluating the file content."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "control_id": {
                     "type": "string",
-                    "description": "The control identifier (e.g. DSI.OE.01, DG.1, DG.1.1).",
+                    "description": "Exactly one control ID per call (e.g. DG.1.1, DSI.OE.01).",
                 },
                 "framework_name": {
                     "type": "string",

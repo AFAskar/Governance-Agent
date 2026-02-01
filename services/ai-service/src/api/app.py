@@ -1,11 +1,20 @@
 """FastAPI application: CORS, routers, exception handlers."""
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.models import ExtractionError
-from src.api.routers import frameworks, health
+from src.api.routers import evaluations, frameworks, health
+
+# Ensure data dirs exist at runtime (evaluations uploads, reports PDFs)
+def _ensure_data_dirs():
+    root = Path(__file__).resolve().parent.parent.parent
+    (root / "data" / "evaluations").mkdir(parents=True, exist_ok=True)
+    (root / "data" / "reports").mkdir(parents=True, exist_ok=True)
+
 
 app = FastAPI(
     title="Governance Agent API",
@@ -25,6 +34,12 @@ app.add_middleware(
 
 app.include_router(health.router)
 app.include_router(frameworks.router)
+app.include_router(evaluations.router)
+
+
+@app.on_event("startup")
+def on_startup():
+    _ensure_data_dirs()
 
 
 @app.exception_handler(ExtractionError)

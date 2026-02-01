@@ -66,6 +66,8 @@ python run.py
 - **Health**: `GET /health`
 - **Setup framework**: `POST /api/v1/frameworks/setup`
   - Form fields: `framework_name` (string), `section_names` (list of strings), `files` (list of PDFs). Same order for section_names and files. Each PDF is saved as `config/frameworks/{framework_name}/{section_name}.json`.
+- **Submit evaluation**: `POST /api/v1/evaluations/submit`
+  - Form fields: `framework_name` (string), `files` (1+ uploads: PDF, DOCX, PPTX, CSV, XLSX), `control_ids_1`, `control_ids_2`, ... (one per file; each = comma-separated IDs). Returns mimic JSON, `evaluation_id`, `report_path`, `file_evaluations`. Requires `GROQ_API_KEY` in env.
 
 ### Other (from `src`)
 
@@ -91,6 +93,11 @@ uv add --group dev pytest
 ```
 
 Run these in your terminal; dev dependencies stay in a separate group (e.g. `[project.optional-dependencies.dev]` or `[tool.uv]` dev-dependencies) so production installs stay lean.
+
+## Environment
+
+- **GROQ_API_KEY**: Required for the evaluation agent (`POST /api/v1/evaluations/submit`). Set in `.env` or environment.
+- **GROQ_MODEL**: Optional; default `llama-3.3-70b-versatile`.
 
 ## Notes
 
