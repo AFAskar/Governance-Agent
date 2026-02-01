@@ -29,10 +29,7 @@ dependencies = [
     "python-pptx>=0.6.0",
     "openpyxl>=3.1.0",
     "pandas>=2.0.0",
+    "uvicorn>=0.40.0",
 ]
 
-[dependency-groups]
-dev = [
-    "fastapi[standard]>=0.128.0",
-]
 
