@@ -2,7 +2,7 @@ services:
   ai_service:
     build:
       context: .
-      dockerfile: ai-dockerfile
+      dockerfile: ai.dockerfile
     ports:
       - "5000:8000"
     depends_on:
@@ -10,7 +10,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: next-dockerfile
+      dockerfile: next.dockerfile
     ports:
       - "5001:3000"
     depends_on:
