@@ -21,6 +21,8 @@ import { Toaster } from "@governance/ui/toast";
 
 import appCss from "~/styles.css?url";
 
+import { NotFound } from "../component/NotFound";
+
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
   trpc: TRPCOptionsProxy<AppRouter>;
@@ -29,6 +31,7 @@ export const Route = createRootRouteWithContext<{
     links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootComponent,
+  notFoundComponent: NotFound,
 });
 
 function RootComponent() {
