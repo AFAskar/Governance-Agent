@@ -8,6 +8,8 @@ export function authEnv() {
         process.env.NODE_ENV === "production"
           ? z.string().min(1)
           : z.string().min(1).optional(),
+      WORKOS_API_KEY: z.string().min(1),
+      WORKOS_CLIENT_ID: z.string().min(1),
       NODE_ENV: z.enum(["development", "production"]).optional(),
     },
     runtimeEnv: process.env,

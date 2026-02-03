@@ -1,8 +1,7 @@
+import { authEnv } from "@governance/auth/env";
 import { createEnv } from "@t3-oss/env-core";
 import { vercel } from "@t3-oss/env-core/presets-zod";
 import { z } from "zod/v4";
-
-import { authEnv } from "@governance/auth/env";
 
 export const env = createEnv({
   clientPrefix: "VITE_",
@@ -18,6 +17,8 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.url(),
+    WORKOS_API_KEY: z.string().min(1),
+    WORKOS_CLIENT_ID: z.string().min(1),
   },
 
   /**
