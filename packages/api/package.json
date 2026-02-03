@@ -29,6 +29,7 @@
     "@governance/eslint-config": "workspace:*",
     "@governance/prettier-config": "workspace:*",
     "@governance/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"

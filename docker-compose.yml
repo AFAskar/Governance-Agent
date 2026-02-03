@@ -19,8 +19,8 @@ services:
       - "5001:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_TELEMETRY_DISABLED=1
       - AI_HOST=ai_service
+      - POSTGRES_URL=postgresql://postgres:password@application_db:5432/app_db
     depends_on:
       application_db:
         condition: service_healthy
@@ -51,7 +51,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: postgres
+      POSTGRES_DB: app_db
     ports:
       - "5432:5432"
     volumes:
