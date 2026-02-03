@@ -10,7 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
-import type { Auth } from "@governance/auth";
+import type { UserInfo, NoUserInfo } from "@governance/auth";
 import { db } from "@governance/db/client";
 
 /**
@@ -28,14 +28,10 @@ import { db } from "@governance/db/client";
 
 export const createTRPCContext = async (opts: {
   headers: Headers;
-  auth: Auth;
+  auth: UserInfo | NoUserInfo;
 }) => {
-  const authApi = opts.auth.api;
-  const session = await authApi.getSession({
-    headers: opts.headers,
-  });
+  const session = opts.auth;
   return {
-    authApi,
     session,
     db,
   };
@@ -122,7 +118,7 @@ export const protectedProcedure = t.procedure
     return next({
       ctx: {
         // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
+        session: ctx.session as UserInfo,
       },
     });
   });

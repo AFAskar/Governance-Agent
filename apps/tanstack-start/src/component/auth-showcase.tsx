@@ -1,29 +1,30 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@workos/authkit-tanstack-react-start/client";
+import { getSignInUrl } from "@workos/authkit-tanstack-react-start";
+import { createServerFn } from "@tanstack/react-start";
 
 import { Button } from "@governance/ui/button";
 
-import { authClient } from "~/auth/client";
+const getSignInUrlFn = createServerFn({ method: "GET" }).handler(async () => {
+  return await getSignInUrl();
+});
 
 export function AuthShowcase() {
-  const { data: session } = authClient.useSession();
-  const navigate = useNavigate();
+  const { user, loading, signOut } = useAuth();
 
-  if (!session) {
+  if (loading) {
+    return <div className="text-muted-foreground">Loading...</div>;
+  }
+
+  if (!user) {
     return (
       <Button
         size="lg"
         onClick={async () => {
-          const res = await authClient.signIn.social({
-            provider: "discord",
-            callbackURL: "/",
-          });
-          if (!res.data?.url) {
-            throw new Error("No URL returned from signInSocial");
-          }
-          await navigate({ href: res.data.url, replace: true });
+          const signInUrl = await getSignInUrlFn();
+          window.location.href = signInUrl;
         }}
       >
-        Sign in with Discord
+        Sign in with WorkOS
       </Button>
     );
   }
@@ -31,16 +32,13 @@ export function AuthShowcase() {
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <p className="text-center text-2xl">
-        <span>Logged in as {session.user.name}</span>
+        <span>
+          Logged in as {user.firstName} {user.lastName}
+        </span>
       </p>
+      <p className="text-muted-foreground">{user.email}</p>
 
-      <Button
-        size="lg"
-        onClick={async () => {
-          await authClient.signOut();
-          await navigate({ href: "/", replace: true });
-        }}
-      >
+      <Button size="lg" onClick={() => signOut()}>
         Sign out
       </Button>
     </div>

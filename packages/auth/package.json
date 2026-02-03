@@ -4,8 +4,6 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./middleware": "./src/middleware.ts",
-    "./client": "./src/client.ts",
     "./env": "./env.ts"
   },
   "license": "MIT",
@@ -16,15 +14,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@governance/db": "workspace:*",
     "@t3-oss/env-core": "^0.13.8",
-    "@workos-inc/node": "^7.27.0",
+    "@workos/authkit-tanstack-react-start": "^0.5.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@governance/eslint-config": "workspace:*",
     "@governance/prettier-config": "workspace:*",
     "@governance/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"

@@ -9,6 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { AuthKitProvider } from "@workos/authkit-tanstack-react-start/client";
 
 import type { AppRouter } from "@governance/api";
 import { ThemeProvider, ThemeToggle } from "@governance/ui/theme";
@@ -28,9 +29,11 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <AuthKitProvider>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </AuthKitProvider>
   );
 }
 
