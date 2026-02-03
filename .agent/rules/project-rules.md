@@ -1,0 +1,65 @@
+---
+trigger: always_on
+---
+
+## Architecture & Priorities
+
+- This is a PoC: prioritize developer speed and clarity over abstraction.
+- Treat all backends as APIs; do not couple services together.
+- The AI service is stateless and must not call application APIs directly.
+
+## Monorepo Structure
+
+- This is a TurboRepo monorepo with pnpm workspaces
+- Apps live in `apps/` (currently only tanstack-start)
+- Shared packages live in `packages/`
+- External services live in `services/`
+- Use `turbo.json` for task definitions and caching
+
+## Environment & Configuration
+
+- Use Zod for environment validation in TypeScript packages
+- Follow the pattern in `packages/auth/env.ts` for type-safe env vars
+- Never commit sensitive values; use `example.env` as a template
+- Prefix AI service env vars with `AI_` to avoid conflicts
+
+## Authentication
+
+- Use [WorkOS](https://workos.com/docs/llms.txt) for authentication and organization context.
+- Do not invent custom auth flows.
+- User identity and org context must be passed explicitly to services.
+
+## Frontend & UI
+
+- All reusable UI components must live in the `packages/ui` package.
+- Use Tailwind CSS for styling.
+- Prefer shadcn/ui components where applicable.
+- Do not create ad-hoc UI components in app folders.
+
+## Forms & State
+
+- Use `@tanstack/react-form` for all forms.
+- Use `@tanstack/react-query` for data fetching, caching, and mutations.
+- Use `@tanstack/react-router` for routing.
+
+## APIs & Data Fetching
+
+- Use tRPC for type-safe application API calls (user data, metrics, app state).
+- Use OpenAPI Generator to generate a typed client for the FastAPI AI service.
+- Do not mix tRPC and OpenAPI clients.
+- Do not have the AI service call the application API.
+
+## Database & Validation
+
+- Use Drizzle ORM for database access.
+- Use Zod for validation.
+- Use `drizzle-zod` for deriving Zod schemas from Drizzle models.
+- Do not duplicate schema definitions manually.
+- Place non-database Zod schemas in the `packages/validators` package.
+
+## AI Service Integration
+
+- The AI service receives all required inputs (user context, metrics, documents).
+- The AI service must not fetch user or metrics data on its own.
+- Inputs should be explicit, minimal, and versionable.
+- AI service shouldn't have a seperate auth flow it should instead use the AI_SERVICE_KEY env var to authenticate requests from the main app which will have that variable sent using a secure header.
