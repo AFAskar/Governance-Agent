@@ -7,6 +7,8 @@ trigger: always_on
 - This is a PoC: prioritize developer speed and clarity over abstraction.
 - Treat all backends as APIs; do not couple services together.
 - The AI service is stateless and must not call application APIs directly.
+- always use pnpm and pnpx for package management
+
 
 ## Monorepo Structure
 
@@ -45,7 +47,7 @@ trigger: always_on
 ## APIs & Data Fetching
 
 - Use tRPC for type-safe application API calls (user data, metrics, app state).
-- Use OpenAPI Generator to generate a typed client for the FastAPI AI service.
+- Use @hey-api/openapi-ts to generate a typed client for the FastAPI AI service.
 - Do not mix tRPC and OpenAPI clients.
 - Do not have the AI service call the application API.
 
