@@ -33,7 +33,7 @@ trigger: always_on
 
 ## Frontend & UI
 
-- All reusable UI components must live in the `packages/ui` package.
+- All reusable UI components must live in the `packages/ui` package. use them
 - Use Tailwind CSS for styling.
 - Prefer shadcn/ui components where applicable.
 - Do not create ad-hoc UI components in app folders.
