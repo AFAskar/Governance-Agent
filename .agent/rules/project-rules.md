@@ -37,7 +37,7 @@ trigger: always_on
 - Do not create ad-hoc UI components in app folders.
 
 ## Forms & State
-
+- Here are the Tanstack [docs](https://tanstack.com/llms.txt)
 - Use `@tanstack/react-form` for all forms.
 - Use `@tanstack/react-query` for data fetching, caching, and mutations.
 - Use `@tanstack/react-router` for routing.
