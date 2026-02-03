@@ -48,6 +48,9 @@ dist/
 # tanstack
 .tanstack
 
+# generated SDK
+packages/ai/src/
+
 # ========= python =========
 # Python-generated files
 __pycache__/

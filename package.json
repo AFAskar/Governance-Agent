@@ -21,7 +21,8 @@
     "lint:ws": "pnpm dlx sherif@latest",
     "postinstall": "pnpm lint:ws",
     "typecheck": "turbo run typecheck",
-    "ui-add": "turbo run ui-add"
+    "ui-add": "turbo run ui-add",
+    "ai-service:generate": "pnpm dlx @hey-api/openapi-ts -i http://localhost:8000/openapi.json"
   },
   "devDependencies": {
     "@governance/prettier-config": "workspace:*",
