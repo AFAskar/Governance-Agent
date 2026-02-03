@@ -1,6 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 
 export function NotFound() {
+    const location = useLocation();
+    console.log("NotFound triggered for path:", location.pathname);
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
             <h1 className="text-9xl font-extrabold tracking-widest text-primary">404</h1>
