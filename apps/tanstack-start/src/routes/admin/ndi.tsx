@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin/ndi")({
 
 function RouteComponent() {
     const trpc = useTRPC();
-    const { data: submissions, isLoading } = useQuery(trpc.submission.getAll.queryOptions());
+    const { data: submissions, isLoading, error } = useQuery(trpc.submission.getAll.queryOptions());
 
     return (
         <main className="container mx-auto px-4 py-12">
@@ -35,29 +35,27 @@ function RouteComponent() {
                 </div>
 
                 {isLoading ? (
-                    <div className="text-center py-12">Loading submissions...</div>
+                    <div className="text-center py-12 text-ndmo-gray-medium">Loading submissions...</div>
+                ) : error ? (
+                    <div className="text-center py-16">
+                        <p className="text-ndmo-red mb-2">Failed to load submissions</p>
+                        <p className="text-sm text-ndmo-gray-medium">{error.message}</p>
+                    </div>
+                ) : !submissions || submissions.length === 0 ? (
+                    <div className="text-center py-16">
+                        <h3 className="text-xl font-semibold text-ndmo-gray-dark mb-2">
+                            No Submissions Yet
+                        </h3>
+                        <p className="text-ndmo-gray-medium">
+                            Company submissions will appear here
+                        </p>
+                    </div>
                 ) : (
-                    <>
-                        {/* Submissions Grid */}
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {submissions?.map((submission) => (
-                                <CompanyCard key={submission.id} submission={submission} />
-                            ))}
-                        </div>
-
-                        {/* Empty State */}
-                        {submissions?.length === 0 && (
-                            <div className="text-center py-16">
-                                <div className="text-6xl mb-4">📊</div>
-                                <h3 className="text-xl font-semibold text-ndmo-gray-dark mb-2">
-                                    No Submissions Yet
-                                </h3>
-                                <p className="text-ndmo-gray-medium">
-                                    Company submissions will appear here
-                                </p>
-                            </div>
-                        )}
-                    </>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {submissions.map((submission) => (
+                            <CompanyCard key={submission.id} submission={submission} />
+                        ))}
+                    </div>
                 )}
             </div>
         </main>
