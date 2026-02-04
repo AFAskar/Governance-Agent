@@ -14,7 +14,7 @@ export function Header() {
                     <img
                         src="/ndmo-logo.png"
                         alt="NDMO"
-                        className="h-10 w-auto"
+                        className="h-25 w-auto"
                     />
                 </Link>
 
