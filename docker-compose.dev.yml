@@ -28,28 +28,29 @@ services:
     build:
       context: .
       dockerfile: next.dockerfile
-      target: base
+      target: development
     ports:
-      - "5001:3000"
+      - "5001:3001"
     env_file:
       - .env
     environment:
       - NODE_ENV=development
-      - WATCHPACK_POLLING=true
     volumes:
-      - ./apps/web:/app/apps/web
-      - /app/apps/web/node_modules
+      - ./apps/tanstack-start:/app/apps/tanstack-start
+      - ./packages:/app/packages
+      - ./tooling:/app/tooling
       - /app/node_modules
+      - /app/apps/tanstack-start/node_modules
     depends_on:
       - ai_service
     restart: unless-stopped
     develop:
       watch:
         - action: sync
-          path: ./apps/web/src
-          target: /app/apps/web/src
+          path: ./apps/tanstack-start/src
+          target: /app/apps/tanstack-start/src
         - action: rebuild
-          path: ./apps/web/package.json
+          path: ./apps/tanstack-start/package.json
 
   vector_db:
     image: qdrant/qdrant:latest

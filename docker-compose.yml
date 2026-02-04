@@ -31,10 +31,12 @@ services:
     environment:
       - NODE_ENV=production
       - AI_HOST=ai_service
-      - POSTGRES_URL=postgresql://postgres:password@application_db:5432/app_db
+      - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@application_db:5432/${POSTGRES_DB:-app_db}
     depends_on:
       ai_service:
         condition: service_started
+      application_db:
+        condition: service_healthy
     restart: unless-stopped
 
   vector_db:
