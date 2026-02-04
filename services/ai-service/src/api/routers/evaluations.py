@@ -3,6 +3,10 @@ Evaluation endpoints: submit files + framework, get mimic JSON + report PDF path
 Number of files is flexible; one control_ids field per file (control_ids_1, control_ids_2, ...).
 """
 
+import os
+import re
+from pathlib import Path
+
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from src.api.models import SubmitEvaluationResponse
@@ -11,6 +15,17 @@ from src.services import EvaluationService
 router = APIRouter(prefix="/api/v1/evaluations", tags=["evaluations"])
 
 _MAX_FILES = 20
+_MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50")) * 1024 * 1024
+_FRAMEWORK_NAME_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
+_CONTROL_IDS_RE = re.compile(r"^[a-zA-Z0-9.,\-_\s]*$")
+
+
+def _sanitize_filename(filename: str) -> str:
+    """Strip path components and restrict to safe characters."""
+    name = Path(filename).name
+    name = re.sub(r"[^a-zA-Z0-9._\-]", "_", name)
+    name = name.lstrip(".")
+    return (name or "file")[:255]
 
 
 def _control_ids_form(i: int, default: str = ""):
@@ -19,7 +34,7 @@ def _control_ids_form(i: int, default: str = ""):
 
 @router.post("/submit", response_model=SubmitEvaluationResponse)
 async def submit_evaluation(
-    framework_name: str = Form(..., min_length=1, description="Framework identifier (e.g. NDI)"),
+    framework_name: str = Form(..., min_length=1, max_length=64, description="Framework identifier (e.g. NDI)"),
     files: list[UploadFile] = File(..., description="Files (PDF, DOCX, PPTX, CSV, XLSX); 1 or more"),
     control_ids_1: str = _control_ids_form(1),
     control_ids_2: str = _control_ids_form(2),
@@ -47,6 +62,12 @@ async def submit_evaluation(
     (control_ids_1 for file 1, control_ids_2 for file 2, etc.). Each value = comma-separated IDs.
     Returns DB-mimic JSON + evaluation_id + report_path.
     """
+    if not _FRAMEWORK_NAME_RE.match(framework_name):
+        raise HTTPException(
+            status_code=400,
+            detail="framework_name must contain only letters, digits, underscores, or hyphens",
+        )
+
     if not files:
         raise HTTPException(status_code=400, detail="At least one file is required")
 
@@ -60,14 +81,26 @@ async def submit_evaluation(
         control_ids_11, control_ids_12, control_ids_13, control_ids_14, control_ids_15,
         control_ids_16, control_ids_17, control_ids_18, control_ids_19, control_ids_20,
     ]
-    control_ids_per_file = [s.strip() for s in control_ids_fields[:n_files]]
+    control_ids_per_file = []
+    for s in control_ids_fields[:n_files]:
+        ids = s.strip()
+        if ids and not _CONTROL_IDS_RE.match(ids):
+            raise HTTPException(status_code=400, detail=f"Invalid control ID format: {ids[:100]}")
+        control_ids_per_file.append(ids)
 
     file_tuples: list[tuple[str, bytes]] = []
     for u in files:
         if not u.filename:
             raise HTTPException(status_code=400, detail="Each file must have a filename")
         body = await u.read()
-        file_tuples.append((u.filename, body))
+        if not body:
+            raise HTTPException(status_code=400, detail=f"File '{u.filename}' is empty")
+        if len(body) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File '{u.filename}' exceeds {_MAX_UPLOAD_BYTES // (1024 * 1024)}MB limit",
+            )
+        file_tuples.append((_sanitize_filename(u.filename), body))
 
     service = EvaluationService()
     result = service.submit_evaluation(

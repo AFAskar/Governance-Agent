@@ -2,6 +2,7 @@
 Entry point: persist uploaded files, build state, run LangGraph, return state (mimic_json, report_path, file_evaluations).
 """
 
+import re
 import uuid
 from pathlib import Path
 from typing import Any
@@ -46,7 +47,8 @@ def run_evaluation_agent(
     # Persist files and build file list with path and field_id
     file_list = []
     for i, (filename, body) in enumerate(files):
-        safe_name = (filename or f"file_{i+1}").replace("..", "_").strip() or f"file_{i+1}"
+        raw_name = Path(filename or f"file_{i+1}").name
+        safe_name = re.sub(r"[^a-zA-Z0-9._\-]", "_", raw_name).lstrip(".") or f"file_{i+1}"
         path = eval_dir / safe_name
         path.write_bytes(body)
         field_id = f"field_{i + 1}"
