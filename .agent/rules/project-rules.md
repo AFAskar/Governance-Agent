@@ -1,9 +1,14 @@
+---
+trigger: always_on
+---
+
 ## Architecture & Priorities
 
 - This is a PoC: prioritize developer speed and clarity over abstraction.
 - Treat all backends as APIs; do not couple services together.
 - The AI service is stateless and must not call application APIs directly.
 - always use pnpm and pnpx for package management
+
 
 ## Monorepo Structure
 
@@ -34,7 +39,7 @@
 - Do not create ad-hoc UI components in app folders.
 
 ## Forms & State
-
+- Here are the Tanstack [docs](https://tanstack.com/llms.txt)
 - Use `@tanstack/react-form` for all forms.
 - Use `@tanstack/react-query` for data fetching, caching, and mutations.
 - Use `@tanstack/react-router` for routing.

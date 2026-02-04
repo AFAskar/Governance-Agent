@@ -9,12 +9,19 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { AuthKitProvider } from "@workos/authkit-tanstack-react-start/client";
 
 import type { AppRouter } from "@governance/api";
-import { ThemeProvider, ThemeToggle } from "@governance/ui/theme";
+import {
+  themeDetectorScript,
+  ThemeProvider,
+  ThemeToggle,
+} from "@governance/ui/theme";
 import { Toaster } from "@governance/ui/toast";
 
 import appCss from "~/styles.css?url";
+
+import { NotFound } from "../component/NotFound";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -24,13 +31,16 @@ export const Route = createRootRouteWithContext<{
     links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootComponent,
+  notFoundComponent: NotFound,
 });
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <AuthKitProvider>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </AuthKitProvider>
   );
 }
 
@@ -40,6 +50,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <html lang="en" suppressHydrationWarning>
         <head>
           <HeadContent />
+          <script
+            dangerouslySetInnerHTML={{ __html: themeDetectorScript }}
+            suppressHydrationWarning
+          />
         </head>
         <body className="bg-background text-foreground min-h-screen font-sans antialiased">
           {children}
@@ -51,6 +65,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <Scripts />
         </body>
       </html>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
