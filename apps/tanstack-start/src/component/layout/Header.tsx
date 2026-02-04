@@ -1,10 +1,12 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { useAuth } from "@workos/authkit-tanstack-react-start/client";
+import { getSignInUrl } from "@workos/authkit-tanstack-react-start";
 
 export function Header() {
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
@@ -33,25 +35,30 @@ export function Header() {
                                     Admin Dashboard
                                 </Link>
                             )}
-                            <form action="/api/auth/signout" method="post">
-                                <button
-                                    type="submit"
-                                    className="rounded-lg bg-ndmo-blue-medium px-4 py-2 text-sm font-medium text-white hover:bg-ndmo-blue-dark transition-colors"
-                                >
-                                    Sign Out
-                                </button>
-                            </form>
+                            <button
+                                onClick={() => signOut()}
+                                className="rounded-lg bg-ndmo-blue-medium px-4 py-2 text-sm font-medium text-primary hover:bg-ndmo-blue-dark transition-colors"
+                            >
+                                Sign Out
+                            </button>
                         </>
                     ) : (
-                        <a
-                            href="/api/auth/signin"
-                            className="rounded-lg bg-ndmo-blue-medium px-4 py-2 text-sm font-medium text-white hover:bg-ndmo-blue-dark transition-colors"
+                        <button
+                            onClick={async () => {
+                                const url = await getSignInUrlFn();
+                                window.location.href = url;
+                            }}
+                            className="rounded-lg bg-ndmo-blue-medium px-4 py-2 text-sm font-medium text-primary hover:bg-ndmo-blue-dark transition-colors"
                         >
                             Sign In
-                        </a>
+                        </button>
                     )}
                 </nav>
             </div>
         </header>
     );
 }
+
+const getSignInUrlFn = createServerFn({ method: "GET" }).handler(async () => {
+    return await getSignInUrl();
+});

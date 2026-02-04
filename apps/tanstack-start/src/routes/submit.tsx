@@ -165,7 +165,7 @@ function RouteComponent() {
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark text-white px-8 py-3 text-lg font-semibold"
+                            className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark text-primary px-8 py-3 text-lg font-semibold"
                         >
                             {isSubmitting ? "Submitting..." : "Submit for Assessment"}
                         </Button>
@@ -193,7 +193,7 @@ function DomainUploadSection({
         <div className="border-b border-ndmo-gray-light pb-6 last:border-b-0">
             <div className="flex items-start gap-4">
                 {/* Domain Number */}
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-ndmo-blue-medium text-white flex items-center justify-center font-bold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-ndmo-blue-medium text-primary flex items-center justify-center font-bold text-sm">
                     {domain.order}
                 </div>
 
@@ -216,7 +216,7 @@ function DomainUploadSection({
                   file:rounded-lg file:border-0
                   file:text-sm file:font-semibold
                   file:bg-ndmo-blue-pale file:text-ndmo-blue-dark
-                  hover:file:bg-ndmo-blue-light hover:file:text-white
+                  hover:file:bg-ndmo-blue-light hover:file:text-primary
                   file:cursor-pointer file:transition-colors"
                             />
                         </label>

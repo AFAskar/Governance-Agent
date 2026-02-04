@@ -84,10 +84,10 @@ interface CompanyCardProps {
 
 function CompanyCard({ submission }: CompanyCardProps) {
     const statusColors = {
-        completed: "bg-ndmo-green text-white",
-        processing: "bg-ndmo-yellow text-white",
-        pending: "bg-ndmo-gray-medium text-white",
-        failed: "bg-ndmo-red text-white",
+        completed: "bg-ndmo-green text-primary",
+        processing: "bg-ndmo-yellow text-primary",
+        pending: "bg-ndmo-gray-medium text-primary",
+        failed: "bg-ndmo-red text-primary",
     };
 
     const statusColor = statusColors[submission.status as keyof typeof statusColors] || statusColors.pending;
