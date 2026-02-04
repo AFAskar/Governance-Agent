@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTRPC } from "~/lib/trpc";
 import { NDI_DOMAINS } from "~/lib/ndi-domains";
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/admin/company/$companyId")({
 function RouteComponent() {
   const { companyId } = Route.useParams();
   const trpc = useTRPC();
-  const { data, isLoading, error } = trpc.submission.getById.useQuery({ id: companyId });
+  const { data, isLoading, error } = useQuery(trpc.submission.getById.queryOptions({ id: companyId }));
 
   if (isLoading) {
     return (

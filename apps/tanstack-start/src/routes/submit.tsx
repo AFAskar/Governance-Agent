@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { NDI_DOMAINS } from "~/lib/ndi-domains";
@@ -43,7 +44,7 @@ function RouteComponent() {
     const [filesByDomain, setFilesByDomain] = useState<Record<string, File[]>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const trpc = useTRPC();
-    const createSubmission = trpc.submission.create.useMutation();
+    const createSubmission = useMutation(trpc.submission.create.mutationOptions());
 
     const form = useForm({
         defaultValues: {

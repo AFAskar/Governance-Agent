@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTRPC } from "~/lib/trpc";
 
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/admin/ndi")({
 
 function RouteComponent() {
     const trpc = useTRPC();
-    const { data: submissions, isLoading } = trpc.submission.getAll.useQuery();
+    const { data: submissions, isLoading } = useQuery(trpc.submission.getAll.queryOptions());
 
     return (
         <main className="container mx-auto px-4 py-12">
