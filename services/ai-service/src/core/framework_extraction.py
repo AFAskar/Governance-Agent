@@ -229,7 +229,8 @@ def extract_controls_from_pdfs(
             logger.error("Error extracting from %s: %s", pdf_path, e)
             return []
 
-    with ThreadPoolExecutor(max_workers=len(pdf_paths_list)) as executor:
+    max_workers = min(len(pdf_paths_list), 4)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         controls_arrays = list(executor.map(extract_pdf, pdf_paths_list))
 
     return controls_arrays
