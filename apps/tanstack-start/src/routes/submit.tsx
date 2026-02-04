@@ -12,6 +12,22 @@ import {
     FieldLabel,
 } from "@governance/ui/field";
 import { toast } from "@governance/ui/toast";
+import { useTRPC } from "~/lib/trpc";
+
+const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            // remove data:application/pdf;base64, prefix
+            const result = reader.result as string;
+            const base64 = result.split(',')[1];
+            if (base64) resolve(base64);
+            else reject(new Error('Failed to convert file to base64'));
+        };
+        reader.onerror = error => reject(error);
+    });
+};
 
 export const Route = createFileRoute("/submit")({
     component: RouteComponent,
@@ -26,6 +42,8 @@ function RouteComponent() {
     const navigate = useNavigate();
     const [filesByDomain, setFilesByDomain] = useState<Record<string, File[]>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const trpc = useTRPC();
+    const createSubmission = trpc.submission.create.useMutation();
 
     const form = useForm({
         defaultValues: {
@@ -51,8 +69,27 @@ function RouteComponent() {
             setIsSubmitting(true);
 
             try {
-                // TODO: Integrate with tRPC API to create submission
-                // TODO: Upload files and send to AI Service
+                const filesToUpload = [];
+                for (const [domainId, files] of Object.entries(filesByDomain)) {
+                    const domain = NDI_DOMAINS.find(d => d.id === domainId);
+                    const domainName = domain ? domain.name : "Unknown";
+                    for (const file of files) {
+                        const content = await fileToBase64(file);
+                        filesToUpload.push({
+                            name: file.name,
+                            content,
+                            type: file.type,
+                            domainId,
+                            domainName,
+                            size: file.size
+                        });
+                    }
+                }
+
+                await createSubmission.mutateAsync({
+                    companyName: value.companyName,
+                    files: filesToUpload
+                });
 
                 toast.success("Submission created successfully!");
                 await navigate({ to: "/" });

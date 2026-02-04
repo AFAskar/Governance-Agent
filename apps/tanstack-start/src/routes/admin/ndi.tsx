@@ -1,32 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTRPC } from "~/lib/trpc";
 
 export const Route = createFileRoute("/admin/ndi")({
     component: RouteComponent,
 });
 
-// Mock data - will be replaced with real API data
-const MOCK_SUBMISSIONS = [
-    {
-        id: "1",
-        companyName: "Example Corporation",
-        createdAt: "2024-02-01",
-        status: "completed",
-    },
-    {
-        id: "2",
-        companyName: "Tech Solutions Ltd",
-        createdAt: "2024-02-03",
-        status: "processing",
-    },
-    {
-        id: "3",
-        companyName: "Data Systems Inc",
-        createdAt: "2024-02-04",
-        status: "pending",
-    },
-];
+
 
 function RouteComponent() {
+    const trpc = useTRPC();
+    const { data: submissions, isLoading } = trpc.submission.getAll.useQuery();
+
     return (
         <main className="container mx-auto px-4 py-12">
             <div className="max-w-6xl mx-auto">
@@ -49,24 +33,30 @@ function RouteComponent() {
                     </p>
                 </div>
 
-                {/* Submissions Grid */}
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {MOCK_SUBMISSIONS.map((submission) => (
-                        <CompanyCard key={submission.id} submission={submission} />
-                    ))}
-                </div>
+                {isLoading ? (
+                    <div className="text-center py-12">Loading submissions...</div>
+                ) : (
+                    <>
+                        {/* Submissions Grid */}
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {submissions?.map((submission) => (
+                                <CompanyCard key={submission.id} submission={submission} />
+                            ))}
+                        </div>
 
-                {/* Empty State */}
-                {MOCK_SUBMISSIONS.length === 0 && (
-                    <div className="text-center py-16">
-                        <div className="text-6xl mb-4">📊</div>
-                        <h3 className="text-xl font-semibold text-ndmo-gray-dark mb-2">
-                            No Submissions Yet
-                        </h3>
-                        <p className="text-ndmo-gray-medium">
-                            Company submissions will appear here
-                        </p>
-                    </div>
+                        {/* Empty State */}
+                        {submissions?.length === 0 && (
+                            <div className="text-center py-16">
+                                <div className="text-6xl mb-4">📊</div>
+                                <h3 className="text-xl font-semibold text-ndmo-gray-dark mb-2">
+                                    No Submissions Yet
+                                </h3>
+                                <p className="text-ndmo-gray-medium">
+                                    Company submissions will appear here
+                                </p>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </main>

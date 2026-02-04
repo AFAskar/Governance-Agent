@@ -21,7 +21,9 @@
     "@governance/auth": "workspace:*",
     "@governance/db": "workspace:*",
     "@governance/validators": "workspace:*",
+    "@hey-api/client-fetch": "^0.13.1",
     "@trpc/server": "catalog:",
+    "drizzle-orm": "^0.44.7",
     "superjson": "2.2.3",
     "zod": "catalog:"
   },
