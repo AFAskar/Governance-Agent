@@ -5,6 +5,8 @@ services:
       dockerfile: ai.dockerfile
     ports:
       - "5000:8000"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/app/src
       - PYTHONDONTWRITEBYTECODE=1
@@ -29,6 +31,8 @@ services:
       target: base
     ports:
       - "5001:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true

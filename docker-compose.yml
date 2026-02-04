@@ -5,6 +5,8 @@ services:
       dockerfile: ai.dockerfile
     ports:
       - "5000:8000"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/app/src
     depends_on:
@@ -17,16 +19,15 @@ services:
       dockerfile: next.dockerfile
     ports:
       - "5001:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
       - AI_HOST=ai_service
     depends_on:
-      application_db:
-        condition: service_healthy
       ai_service:
         condition: service_started
-
     restart: unless-stopped
 
   vector_db:
@@ -45,13 +46,14 @@ services:
         target: /qdrant/config/production.yaml
     volumes:
       - qdrant_data:/qdrant/storage
+
   application_db:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-governance_db}
     ports:
       - "5432:5432"
     volumes:
@@ -62,6 +64,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+
 configs:
   qdrant_config:
     content: |
