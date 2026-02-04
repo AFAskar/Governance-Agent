@@ -1,0 +1,31 @@
+{
+  "name": "@governance/auth",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./env": "./env.ts"
+  },
+  "license": "MIT",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.8",
+    "@workos/authkit-tanstack-react-start": "^0.5.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@governance/eslint-config": "workspace:*",
+    "@governance/prettier-config": "workspace:*",
+    "@governance/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@governance/prettier-config"
+}

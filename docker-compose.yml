@@ -30,8 +30,8 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - NEXT_TELEMETRY_DISABLED=1
       - AI_HOST=ai_service
+      - POSTGRES_URL=postgresql://postgres:password@application_db:5432/app_db
     depends_on:
       ai_service:
         condition: service_started
@@ -66,7 +66,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-      POSTGRES_DB: ${POSTGRES_DB:-governance_db}
+      POSTGRES_DB: ${POSTGRES_DB:-app_db}
     ports:
       - "5432:5432"
     volumes:
