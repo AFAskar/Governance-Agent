@@ -3,7 +3,10 @@ RAG retrieval: fetch control details by ID (JSON cards + PDF chunks).
 Designed for use by agents as a callable tool.
 """
 
+import logging
 from typing import Dict, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 

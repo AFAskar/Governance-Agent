@@ -3,7 +3,10 @@ LangGraph evaluation graph: file processing -> mimic JSON -> file evaluation loo
 """
 
 import json
+import logging
 from typing import Any, Literal
+
+logger = logging.getLogger(__name__)
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.messages import RemoveMessage
@@ -29,6 +32,7 @@ def _file_processing_node(state: EvaluationState) -> dict[str, Any]:
         try:
             text = extract_text_from_file(path)
         except Exception as e:
+            logger.error("Failed to extract text from %s: %s", path, e)
             text = f"[Extraction error: {e}]"
         result.append({"path": path, "extracted_text": text, "field_id": field_id})
     return {
@@ -116,6 +120,7 @@ def _file_eval_tools_node(state: EvaluationState) -> dict[str, Any]:
             result = execute_tool(dict(state), name, args)
             content = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False)
         except Exception as e:
+            logger.error("Tool '%s' failed with args %s: %s", name, args, e)
             content = str(e)
         tool_messages.append(ToolMessage(content=content, tool_call_id=tid))
     return {"messages": tool_messages}
@@ -156,7 +161,8 @@ def _file_eval_done_node(state: EvaluationState) -> dict[str, Any]:
             })
         else:
             evaluations.append({"file_index": idx, "field_id": field_id, "summary": content})
-    except (json.JSONDecodeError, TypeError):
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.warning("Failed to parse LLM response as JSON for %s: %s", field_id, e)
         evaluations.append({"file_index": idx, "field_id": field_id, "summary": content})
     return {
         "file_evaluations": evaluations,

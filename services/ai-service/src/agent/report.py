@@ -2,8 +2,11 @@
 Report generation: comprehensive report from file_evaluations and mimic_json; save PDF.
 """
 
+import logging
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4

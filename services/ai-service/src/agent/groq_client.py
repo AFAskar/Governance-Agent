@@ -2,8 +2,11 @@
 Groq LLM client for the evaluation agent. Thin wrapper around langchain_groq.
 """
 
+import logging
 import os
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 

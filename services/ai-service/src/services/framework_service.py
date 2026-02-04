@@ -3,11 +3,14 @@ Framework service: orchestrates framework setup (extraction + save).
 Used by API and CLI.
 """
 
+import logging
 import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from src.core import extract_controls_from_pdfs
 from src.rag import index_framework

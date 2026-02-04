@@ -4,6 +4,7 @@ Extracts compliance controls from PDF text (LLM) and from multiple PDFs in paral
 """
 
 import json
+import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List
@@ -14,6 +15,8 @@ from openai import OpenAI
 from src.processing import extract_text_from_pdf
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 def extract_controls_from_framework(
@@ -122,7 +125,7 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
 
     result_text = response.choices[0].message.content
     if not result_text or not str(result_text).strip():
-        print("API returned empty response (possible rate limit or error)")
+        logger.warning("API returned empty response (possible rate limit or error)")
         return {"framework_name": framework_name, "controls": []}
 
     result_text = str(result_text).strip()
@@ -139,7 +142,7 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
         result_json = json.loads(result_text)
     except json.JSONDecodeError as e:
         preview = (result_text or "")[:200]
-        print(f"Warning: JSON parsing error: {e}. Raw response (len={len(result_text or '')}): {preview!r}")
+        logger.warning("JSON parsing error: %s. Raw response (len=%d): %r", e, len(result_text or ""), preview)
         # Try to fix truncated JSON by finding last complete structure
         last_brace = result_text.rfind('}')
         last_bracket = result_text.rfind(']')
@@ -148,9 +151,9 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
         if end_pos > 0:
             try:
                 result_json = json.loads(result_text[:end_pos + 1])
-                print("Successfully parsed truncated JSON")
+                logger.info("Successfully parsed truncated JSON")
             except Exception:
-                print("Could not parse JSON, returning empty controls")
+                logger.warning("Could not parse JSON, returning empty controls")
                 return {"framework_name": framework_name, "controls": []}
         else:
             return {"framework_name": framework_name, "controls": []}
@@ -204,22 +207,22 @@ def extract_controls_from_pdfs(
         try:
             pdf_text = extract_text_from_pdf(pdf_path)
             if not (pdf_text and pdf_text.strip()):
-                print(f"Skipping {pdf_path}: no text extracted")
+                logger.warning("Skipping %s: no text extracted", pdf_path)
                 return []
             controls_json = extract_controls_from_framework(pdf_text, framework_name)
             controls = controls_json.get("controls", [])
             retries = 0
             while len(controls) == 0 and retries < MAX_RETRIES:
                 retries += 1
-                print(f"Empty controls for {pdf_path}, retry {retries}/{MAX_RETRIES} with fallback prompt")
+                logger.info("Empty controls for %s, retry %d/%d with fallback prompt", pdf_path, retries, MAX_RETRIES)
                 controls_json = extract_controls_from_framework(
                     pdf_text, framework_name, use_fallback_prompt=True
                 )
                 controls = controls_json.get("controls", [])
-            print(f"Controls extracted from {pdf_path}")
+            logger.info("Controls extracted from %s", pdf_path)
             return controls
         except Exception as e:
-            print(f"Error extracting from {pdf_path}: {e}")
+            logger.error("Error extracting from %s: %s", pdf_path, e)
             return []
 
     with ThreadPoolExecutor(max_workers=len(pdf_paths_list)) as executor:

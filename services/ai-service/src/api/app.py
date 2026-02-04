@@ -1,5 +1,8 @@
 """FastAPI application: CORS, routers, exception handlers."""
 
+import logging
+import os
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -8,6 +11,24 @@ from fastapi.responses import JSONResponse
 
 from src.api.models import ExtractionError
 from src.api.routers import evaluations, frameworks, health
+
+logger = logging.getLogger(__name__)
+
+
+def _setup_logging() -> None:
+    """Configure structured logging for the application."""
+    level = os.getenv("LOG_LEVEL", "INFO").upper()
+    logging.basicConfig(
+        level=getattr(logging, level, logging.INFO),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
+    # Reduce noise from third-party libraries
+    logging.getLogger("langchain").setLevel(logging.WARNING)
+    logging.getLogger("qdrant_client").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+
 
 # Ensure data dirs exist at runtime (evaluations uploads, reports PDFs)
 def _ensure_data_dirs():
@@ -39,7 +60,9 @@ app.include_router(evaluations.router)
 
 @app.on_event("startup")
 def on_startup():
+    _setup_logging()
     _ensure_data_dirs()
+    logger.info("Governance Agent API started")
 
 
 @app.exception_handler(ExtractionError)

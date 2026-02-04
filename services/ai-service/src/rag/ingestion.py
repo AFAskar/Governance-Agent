@@ -2,8 +2,11 @@
 RAG ingestion: index JSON control cards + PDF chunks into Qdrant.
 """
 
+import logging
 from pathlib import Path
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 from src.processing import extract_text_from_pdf, chunk_text
 from src.utils import list_framework_jsons, get_vector_db_pdf_paths
@@ -64,7 +67,8 @@ def index_framework(
     for pdf_path in pdf_paths:
         try:
             raw = extract_text_from_pdf(pdf_path)
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to extract PDF %s, skipping: %s", pdf_path, e)
             continue
         stem = Path(pdf_path).stem
         chunks = chunk_text(raw, framework_name=framework_name)

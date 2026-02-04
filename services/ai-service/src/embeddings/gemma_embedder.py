@@ -5,7 +5,10 @@ Supports HuggingFace token authentication for gated models.
 Model: https://huggingface.co/google/embeddinggemma-300m
 """
 
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 os.environ["HF_HUB_OFFLINE"] = "1"  # Set to "0" for first-time model download.
 
@@ -57,12 +60,14 @@ class GemmaEmbedder:
         if self.token and not offline:
             model_kwargs["token"] = self.token
 
+        logger.info("Loading embedding model %s on device %s", self.model_name, self.device)
         try:
             self.model = SentenceTransformer(
                 self.model_name,
                 device=self.device,
                 **model_kwargs
             )
+            logger.info("Embedding model loaded successfully")
         except Exception as e:
             error_msg = str(e)
             if "gated" in error_msg.lower() or "401" in error_msg or "403" in error_msg:

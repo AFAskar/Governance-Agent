@@ -3,8 +3,12 @@ PDF Parser Module
 Handles extraction of text from PDF files with multilingual support (Arabic/English)
 """
 
+import logging
+
 import pdfplumber
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
@@ -34,7 +38,8 @@ def extract_text_from_pdf(pdf_path: str) -> str:
                 page_text = page.extract_text()
                 if page_text:
                     text_content.append(page_text)
-            except Exception:
+            except Exception as e:
+                logger.warning("Failed to extract text from page %d of %s: %s", page.page_number, pdf_path, e)
                 continue
     
     if not text_content:
