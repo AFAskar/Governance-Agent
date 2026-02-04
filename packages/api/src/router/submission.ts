@@ -6,7 +6,7 @@ import { eq, desc } from "drizzle-orm";
 import { protectedProcedure } from "../trpc";
 import { submitEvaluationApiV1EvaluationsSubmitPost } from "../ai-client/sdk.gen";
 import { getAIClient } from "../lib/ai";
-import { Submission, SubmissionFile, EvaluationReport } from "@governance/db/schema";
+import * as schema from "@governance/db/schema";
 
 export const submissionRouter = {
     create: protectedProcedure
@@ -31,7 +31,7 @@ export const submissionRouter = {
 
             // 1. Create Submission
             const [submission] = await ctx.db
-                .insert(Submission)
+                .insert(schema.Submission)
                 .values({
                     companyName,
                     userId: ctx.session.user.id,
@@ -57,7 +57,7 @@ export const submissionRouter = {
             }));
 
             if (fileInserts.length > 0) {
-                await ctx.db.insert(SubmissionFile).values(fileInserts);
+                await ctx.db.insert(schema.SubmissionFile).values(fileInserts);
             }
 
             // 3. Prepare files for AI Service
@@ -85,7 +85,7 @@ export const submissionRouter = {
                 if (!data) throw new Error("No data returned from AI service");
 
                 // 5. Create Evaluation Report
-                await ctx.db.insert(EvaluationReport).values({
+                await ctx.db.insert(schema.EvaluationReport).values({
                     submissionId: submission.id,
                     aiServiceReportId: data.evaluation_id,
                     reportPath: data.report_path,
@@ -95,15 +95,15 @@ export const submissionRouter = {
                 });
 
                 // Update submission status
-                await ctx.db.update(Submission)
+                await ctx.db.update(schema.Submission)
                     .set({ status: "completed" })
-                    .where(eq(Submission.id, submission.id));
+                    .where(eq(schema.Submission.id, submission.id));
 
                 return { success: true, submissionId: submission.id };
 
             } catch (e) {
                 console.error("AI Service Submission Failed", e);
-                await ctx.db.update(Submission).set({ status: "failed" }).where(eq(Submission.id, submission.id));
+                await ctx.db.update(schema.Submission).set({ status: "failed" }).where(eq(schema.Submission.id, submission.id));
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Failed to process submission with AI service",
@@ -113,6 +113,6 @@ export const submissionRouter = {
         }),
 
     getAll: protectedProcedure.query(async ({ ctx }) => {
-        return ctx.db.select().from(Submission).orderBy(desc(Submission.createdAt));
+        return ctx.db.select().from(schema.Submission).orderBy(desc(schema.Submission.createdAt));
     }),
 } satisfies TRPCRouterRecord;
