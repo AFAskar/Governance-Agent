@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
-import { useAuth } from "@workos/authkit-tanstack-react-start";
+import { useAuth } from "@workos/authkit-tanstack-react-start/client";
 
 export function Header() {
     const { user } = useAuth();
@@ -25,7 +25,7 @@ export function Header() {
                             <span className="text-sm text-ndmo-gray-medium">
                                 {user.email}
                             </span>
-                            {user.role === "admin" && (
+                            {(user as any).role === "admin" && (
                                 <Link
                                     to="/admin"
                                     className="text-sm font-medium text-ndmo-blue-medium hover:text-ndmo-blue-dark"
@@ -43,12 +43,12 @@ export function Header() {
                             </form>
                         </>
                     ) : (
-                        <Link
-                            to="/api/auth/signin"
+                        <a
+                            href="/api/auth/signin"
                             className="rounded-lg bg-ndmo-blue-medium px-4 py-2 text-sm font-medium text-white hover:bg-ndmo-blue-dark transition-colors"
                         >
                             Sign In
-                        </Link>
+                        </a>
                     )}
                 </nav>
             </div>
