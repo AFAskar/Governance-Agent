@@ -52,6 +52,24 @@ services:
         - action: rebuild
           path: ./apps/tanstack-start/package.json
 
+  application_db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-app_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   vector_db:
     image: qdrant/qdrant:latest
     restart: unless-stopped
@@ -69,5 +87,7 @@ services:
       start_period: 40s
 
 volumes:
+  db_dev_data:
+    driver: local
   qdrant_dev_data:
     driver: local
