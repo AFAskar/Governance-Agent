@@ -5,9 +5,10 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.api.models import ExtractionError
 from src.api.routers import evaluations, frameworks, health
@@ -54,6 +55,17 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.include_router(health.router)
 app.include_router(frameworks.router)
 app.include_router(evaluations.router)
@@ -80,11 +92,12 @@ async def extraction_error_handler(request, exc: ExtractionError):
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request, exc: ValueError):
+    logger.warning("ValueError on %s %s: %s", request.method, request.url.path, exc)
     return JSONResponse(
         status_code=400,
         content={
             "error": "bad_request",
-            "message": str(exc),
+            "message": "Invalid request parameters",
             "detail": None,
         },
     )

@@ -13,6 +13,10 @@ COPY services/ai-service/ ./
 
 RUN uv sync --no-dev
 
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
 CMD ["python", "run.py"]
