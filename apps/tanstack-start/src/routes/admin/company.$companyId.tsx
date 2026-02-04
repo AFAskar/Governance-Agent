@@ -14,7 +14,7 @@ const MOCK_REPORT = {
     overallScore: 78.5,
     domainResults: [
         {
-            domainId: "DG",
+            domainId: "1_Data_Governance",
             domainName: "Data Governance",
             score: 85,
             filesCount: 3,
@@ -22,15 +22,15 @@ const MOCK_REPORT = {
             compliantControls: 10,
         },
         {
-            domainId: "DCM",
-            domainName: "Data Catalog & Metadata",
+            domainId: "2_Data_Catalog",
+            domainName: "Data Catalog",
             score: 72,
             filesCount: 2,
             controlsEvaluated: 8,
             compliantControls: 6,
         },
         {
-            domainId: "DQ",
+            domainId: "3_Data_Quality",
             domainName: "Data Quality",
             score: 90,
             filesCount: 4,

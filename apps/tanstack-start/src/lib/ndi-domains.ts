@@ -5,79 +5,64 @@
 
 export const NDI_DOMAINS = [
     {
-        id: "DG",
+        id: "1_Data_Governance",
         name: "Data Governance",
         order: 1,
     },
     {
-        id: "DCM",
-        name: "Data Catalog & Metadata",
+        id: "2_Data_Catalog",
+        name: "Data Catalog",
         order: 2,
     },
     {
-        id: "DQ",
+        id: "3_Data_Quality",
         name: "Data Quality",
         order: 3,
     },
     {
-        id: "DO",
+        id: "4_Data_Operations",
         name: "Data Operations",
         order: 4,
     },
     {
-        id: "DM",
-        name: "Document Management",
+        id: "5_Data_Security",
+        name: "Data Security",
         order: 5,
     },
     {
-        id: "DA",
-        name: "Data Architecture",
+        id: "6_Personal_Data_Protection",
+        name: "Personal Data Protection",
         order: 6,
     },
     {
-        id: "DS",
-        name: "Data Sharing",
+        id: "7_Data_Classification",
+        name: "Data Classification",
         order: 7,
     },
     {
-        id: "MD",
-        name: "Master Data",
+        id: "8_Training_Awareness",
+        name: "Training Awareness",
         order: 8,
     },
     {
-        id: "ABI",
-        name: "Analytics & BI",
+        id: "9_Audit_Compliance",
+        name: "Audit Compliance",
         order: 9,
     },
     {
-        id: "DV",
-        name: "Data Value",
+        id: "10_Risk_Management",
+        name: "Risk Management",
         order: 10,
     },
     {
-        id: "OD",
-        name: "Open Data",
+        id: "11_Governance_Meetings",
+        name: "Governance Meetings",
         order: 11,
     },
     {
-        id: "FOI",
-        name: "Freedom of Information",
+        id: "12_Supporting_Documents",
+        name: "Supporting Documents",
         order: 12,
-    },
-    {
-        id: "DC",
-        name: "Data Classification",
-        order: 13,
-    },
-    {
-        id: "PDP",
-        name: "Personal Data Protection",
-        order: 14,
-    },
-    {
-        id: "DSec",
-        name: "Data Security",
-        order: 15,
     },
 ] as const;
 
