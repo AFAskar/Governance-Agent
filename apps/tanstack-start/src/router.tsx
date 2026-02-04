@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
@@ -25,11 +25,13 @@ export function getRouter() {
     context: { queryClient, trpc },
     defaultPreload: "intent",
     Wrap: (props) => (
-      <TRPCProvider
-        trpcClient={trpcClient}
-        queryClient={queryClient}
-        {...props}
-      />
+      <QueryClientProvider client={queryClient}>
+        <TRPCProvider
+          trpcClient={trpcClient}
+          queryClient={queryClient}
+          {...props}
+        />
+      </QueryClientProvider>
     ),
   });
   setupRouterSsrQueryIntegration({

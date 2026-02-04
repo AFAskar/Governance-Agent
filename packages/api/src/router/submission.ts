@@ -122,4 +122,31 @@ export const submissionRouter = {
       .from(schema.Submission)
       .orderBy(desc(schema.Submission.createdAt));
   }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [submission] = await ctx.db
+        .select()
+        .from(schema.Submission)
+        .where(eq(schema.Submission.id, input.id))
+        .limit(1);
+
+      if (!submission) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found" });
+      }
+
+      const files = await ctx.db
+        .select()
+        .from(schema.SubmissionFile)
+        .where(eq(schema.SubmissionFile.submissionId, input.id));
+
+      const [report] = await ctx.db
+        .select()
+        .from(schema.EvaluationReport)
+        .where(eq(schema.EvaluationReport.submissionId, input.id))
+        .limit(1);
+
+      return { submission, files, report: report ?? null };
+    }),
 } satisfies TRPCRouterRecord;

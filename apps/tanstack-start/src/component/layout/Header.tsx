@@ -27,14 +27,12 @@ export function Header() {
                             <span className="text-sm text-ndmo-gray-medium">
                                 {user.email}
                             </span>
-                            {(user as any).role === "admin" && (
-                                <Link
-                                    to="/admin"
-                                    className="text-sm font-medium text-ndmo-blue-medium hover:text-ndmo-blue-dark"
-                                >
-                                    Admin Dashboard
-                                </Link>
-                            )}
+                            <Link
+                                to="/admin"
+                                className="text-sm font-medium text-ndmo-blue-medium hover:text-ndmo-blue-dark"
+                            >
+                                Admin Dashboard
+                            </Link>
                             <button
                                 onClick={() => signOut()}
                                 className="rounded-lg bg-ndmo-blue-medium px-4 py-2 text-sm font-medium text-primary hover:bg-ndmo-blue-dark transition-colors"

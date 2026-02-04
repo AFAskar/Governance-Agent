@@ -21,6 +21,19 @@
   }
 }
 
+@theme inline {
+  --color-ndmo-blue-dark: #1a365d;
+  --color-ndmo-blue-medium: #2b6cb0;
+  --color-ndmo-blue-light: #4299e1;
+  --color-ndmo-blue-pale: #ebf8ff;
+  --color-ndmo-green: #38a169;
+  --color-ndmo-yellow: #d69e2e;
+  --color-ndmo-red: #e53e3e;
+  --color-ndmo-gray-dark: #2d3748;
+  --color-ndmo-gray-medium: #718096;
+  --color-ndmo-gray-light: #e2e8f0;
+}
+
 @layer base {
   :root {
     --font-geist-sans: "Geist Variable";
