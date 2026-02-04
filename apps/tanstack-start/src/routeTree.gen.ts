@@ -9,13 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminNdiRouteImport } from './routes/admin/ndi'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthCallbackRouteImport } from './routes/api/auth/callback'
+import { Route as AdminCompanyCompanyIdRouteImport } from './routes/admin/company.$companyId'
 
+const SubmitRoute = SubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminNdiRoute = AdminNdiRouteImport.update({
+  id: '/admin/ndi',
+  path: '/admin/ndi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
@@ -28,44 +47,108 @@ const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
   path: '/api/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCompanyCompanyIdRoute = AdminCompanyCompanyIdRouteImport.update({
+  id: '/admin/company/$companyId',
+  path: '/admin/company/$companyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/submit': typeof SubmitRoute
+  '/admin/ndi': typeof AdminNdiRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/company/$companyId': typeof AdminCompanyCompanyIdRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/submit': typeof SubmitRoute
+  '/admin/ndi': typeof AdminNdiRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/company/$companyId': typeof AdminCompanyCompanyIdRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/submit': typeof SubmitRoute
+  '/admin/ndi': typeof AdminNdiRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/company/$companyId': typeof AdminCompanyCompanyIdRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/auth/callback' | '/api/trpc/$'
+  fullPaths:
+    | '/'
+    | '/submit'
+    | '/admin/ndi'
+    | '/admin'
+    | '/admin/company/$companyId'
+    | '/api/auth/callback'
+    | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/auth/callback' | '/api/trpc/$'
-  id: '__root__' | '/' | '/api/auth/callback' | '/api/trpc/$'
+  to:
+    | '/'
+    | '/submit'
+    | '/admin/ndi'
+    | '/admin'
+    | '/admin/company/$companyId'
+    | '/api/auth/callback'
+    | '/api/trpc/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/submit'
+    | '/admin/ndi'
+    | '/admin/'
+    | '/admin/company/$companyId'
+    | '/api/auth/callback'
+    | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SubmitRoute: typeof SubmitRoute
+  AdminNdiRoute: typeof AdminNdiRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminCompanyCompanyIdRoute: typeof AdminCompanyCompanyIdRoute
   ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/submit': {
+      id: '/submit'
+      path: '/submit'
+      fullPath: '/submit'
+      preLoaderRoute: typeof SubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/ndi': {
+      id: '/admin/ndi'
+      path: '/admin/ndi'
+      fullPath: '/admin/ndi'
+      preLoaderRoute: typeof AdminNdiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/trpc/$': {
@@ -82,11 +165,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/company/$companyId': {
+      id: '/admin/company/$companyId'
+      path: '/admin/company/$companyId'
+      fullPath: '/admin/company/$companyId'
+      preLoaderRoute: typeof AdminCompanyCompanyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SubmitRoute: SubmitRoute,
+  AdminNdiRoute: AdminNdiRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminCompanyCompanyIdRoute: AdminCompanyCompanyIdRoute,
   ApiAuthCallbackRoute: ApiAuthCallbackRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }

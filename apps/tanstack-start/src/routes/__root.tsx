@@ -22,6 +22,7 @@ import { Toaster } from "@governance/ui/toast";
 import appCss from "~/styles.css?url";
 
 import { NotFound } from "../component/NotFound";
+import { Header } from "../component/layout/Header";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -55,7 +56,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             suppressHydrationWarning
           />
         </head>
-        <body className="bg-background text-foreground min-h-screen font-sans antialiased">
+        <body className="bg-ndmo-gray-light text-foreground min-h-screen font-sans antialiased">
+          <Header />
           {children}
           <div className="absolute right-4 bottom-12">
             <ThemeToggle />
