@@ -56,7 +56,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             suppressHydrationWarning
           />
         </head>
-        <body className="bg-ndmo-gray-light text-foreground min-h-screen font-sans antialiased">
+        <body className="bg-background text-foreground min-h-screen font-sans antialiased">
           <Header />
           {children}
           <div className="absolute right-4 bottom-12">
