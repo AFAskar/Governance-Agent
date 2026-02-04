@@ -104,5 +104,10 @@ def build_report_pdf(state: dict[str, Any]) -> str:
             story.append(Paragraph(text.replace("\n", "<br/>"), styles["Normal"]))
         story.append(Spacer(1, 8))
 
-    doc.build(story)
+    try:
+        doc.build(story)
+    except Exception as e:
+        logger.error("Failed to build report PDF at %s: %s", path, e)
+        raise
+    logger.info("Report generated: %s", path)
     return str(path)

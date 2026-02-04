@@ -75,10 +75,14 @@ def retrieve_control_details(
             "pdf_chunks": [{"text": str, "score": float, "metadata": dict}, ...],
         }
     """
-    embedder = get_shared_embedder()
-    collection = f"{framework_name}_rag"
-    dim = embedder.get_embedding_dim()
-    client = initialize_qdrant(collection_name=collection, vector_size=dim)
+    try:
+        embedder = get_shared_embedder()
+        collection = f"{framework_name}_rag"
+        dim = embedder.get_embedding_dim()
+        client = initialize_qdrant(collection_name=collection, vector_size=dim)
+    except Exception as e:
+        logger.error("Failed to initialize retrieval for framework '%s': %s", framework_name, e)
+        return {"json_cards": [], "pdf_chunks": []}
 
     json_filter = Filter(
         must=[
@@ -86,7 +90,11 @@ def retrieve_control_details(
             FieldCondition(key="source", match=MatchValue(value="json")),
         ]
     )
-    json_cards = fetch_by_filter(client, collection, json_filter)
+    try:
+        json_cards = fetch_by_filter(client, collection, json_filter)
+    except Exception as e:
+        logger.error("Failed to fetch JSON cards for control '%s': %s", control_id, e)
+        json_cards = []
 
     description_snippet = ""
     if json_cards and json_cards[0].get("text"):
@@ -99,14 +107,18 @@ def retrieve_control_details(
             FieldCondition(key="framework_name", match=MatchValue(value=framework_name)),
         ]
     )
-    query_embedding = embedder.embed_text(query)
-    pdf_chunks = search_similar_filtered(
-        client,
-        collection,
-        query_embedding,
-        top_k=top_k_pdf,
-        query_filter=pdf_filter,
-    )
+    try:
+        query_embedding = embedder.embed_text(query)
+        pdf_chunks = search_similar_filtered(
+            client,
+            collection,
+            query_embedding,
+            top_k=top_k_pdf,
+            query_filter=pdf_filter,
+        )
+    except Exception as e:
+        logger.error("Failed to search PDF chunks for control '%s': %s", control_id, e)
+        pdf_chunks = []
 
     return {
         "json_cards": json_cards,

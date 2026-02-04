@@ -112,16 +112,20 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
         temperature = 0.15
 
     # Low temperature + fixed seed for reproducible, consistent extraction
-    response = client.chat.completions.create(
-        model="openai/gpt-4.1",
-        messages=[
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": extraction_prompt},
-        ],
-        temperature=temperature,
-        seed=42,
-        response_format={"type": "json_object"}
-    )
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-4.1",
+            messages=[
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": extraction_prompt},
+            ],
+            temperature=temperature,
+            seed=42,
+            response_format={"type": "json_object"}
+        )
+    except Exception as e:
+        logger.error("LLM API call failed for framework '%s': %s", framework_name, e)
+        return {"framework_name": framework_name, "controls": []}
 
     result_text = response.choices[0].message.content
     if not result_text or not str(result_text).strip():

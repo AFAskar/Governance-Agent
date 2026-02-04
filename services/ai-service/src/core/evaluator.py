@@ -4,12 +4,16 @@ Evaluates applicant documents against saved evaluation prompts and controls
 """
 
 import json
-from openai import OpenAI
-from typing import Dict, Any, List
+import logging
 import os
+from typing import Dict, Any, List
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 def evaluate_applicant(
@@ -58,21 +62,25 @@ CONTROLS REFERENCE (for context):
 
 Now evaluate the applicant documents against the framework and provide a comprehensive evaluation report."""
 
-    response = client.chat.completions.create(
-        model="openai/gpt-4.1",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a compliance evaluation expert. Evaluate documents against compliance frameworks accurately and provide detailed reports."
-            },
-            {
-                "role": "user",
-                "content": evaluation_request
-            }
-        ],
-        temperature=0.2,
-        response_format={"type": "json_object"}
-    )
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-4.1",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a compliance evaluation expert. Evaluate documents against compliance frameworks accurately and provide detailed reports."
+                },
+                {
+                    "role": "user",
+                    "content": evaluation_request
+                }
+            ],
+            temperature=0.2,
+            response_format={"type": "json_object"}
+        )
+    except Exception as e:
+        logger.error("Evaluator LLM API call failed: %s", e)
+        raise
     
     # Check if response has content
     if not response.choices or not response.choices[0].message:

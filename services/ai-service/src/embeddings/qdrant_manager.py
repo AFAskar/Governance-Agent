@@ -3,7 +3,11 @@ Qdrant Manager Module
 Handles Qdrant vector database operations for storing and retrieving document chunks
 """
 
+import logging
+
 from qdrant_client import QdrantClient
+
+logger = logging.getLogger(__name__)
 from qdrant_client.models import (
     Distance,
     VectorParams,
@@ -57,13 +61,18 @@ def initialize_qdrant(
     try:
         client.get_collection(collection_name)
     except Exception:
-        client.create_collection(
-            collection_name=collection_name,
-            vectors_config=VectorParams(
-                size=vector_size,
-                distance=Distance.COSINE
+        logger.info("Collection '%s' not found, creating with vector_size=%d", collection_name, vector_size)
+        try:
+            client.create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(
+                    size=vector_size,
+                    distance=Distance.COSINE
+                )
             )
-        )
+        except Exception as e:
+            logger.error("Failed to create collection '%s': %s", collection_name, e)
+            raise
     
     return client
 
