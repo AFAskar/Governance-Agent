@@ -14,11 +14,6 @@ RUN uv pip install --system --no-cache \
     torch==2.5.1+cpu \
     --index-url https://download.pytorch.org/whl/cpu
 
-RUN uv pip install --system --no-cache transformers tqdm numpy scikit-learn scipy nltk sentencepiece
-
-RUN uv pip install --system --no-cache --no-deps sentence-transformers
-
-
 # Install other dependencies
 RUN uv sync --no-install-project --no-dev
 
