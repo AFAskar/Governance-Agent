@@ -9,12 +9,12 @@ dependencies = [
     "pdfplumber>=0.10.0",
     "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
-    "pypdf>=3.0.0",
-    "ipykernel>=7.1.0",
+    # Removed pypdf (redundant with pdfplumber)
+    # Removed ipykernel (only needed for dev/notebooks)
     "qdrant-client>=1.8.0",
     "haystack-ai>=2.0.0",
     "transformers>=4.35.0",
-    "torch>=2.0.0",
+    # torch installed separately as CPU-only in Dockerfile
     "sentence-transformers>=2.2.0",
     "accelerate>=0.24.0",
     "python-multipart>=0.0.9",
@@ -30,6 +30,12 @@ dependencies = [
     "openpyxl>=3.1.0",
     "pandas>=2.0.0",
     "uvicorn>=0.40.0",
+]
+
+[tool.uv]
+# Exclude torch from uv sync since we install CPU version manually
+override-dependencies = [
+    "torch==2.5.1",
 ]
 
 
