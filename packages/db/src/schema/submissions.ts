@@ -19,7 +19,7 @@ export const Submission = pgTable("submission", (t) => ({
 export const SubmissionFile = pgTable("submission_file", (t) => ({
   id: t.uuid().notNull().primaryKey().defaultRandom(),
   submissionId: t.uuid().notNull().references(() => Submission.id, { onDelete: "cascade" }),
-  domainId: t.varchar({ length: 10 }).notNull(), // DG, DCM, DQ, etc.
+  domainId: t.varchar({ length: 100 }).notNull(),
   domainName: t.varchar({ length: 255 }).notNull(),
   fileName: t.varchar({ length: 255 }).notNull(),
   filePath: t.text().notNull(),
@@ -50,7 +50,7 @@ export const CreateSubmissionSchema = createInsertSchema(Submission, {
 });
 
 export const CreateSubmissionFileSchema = createInsertSchema(SubmissionFile, {
-  domainId: z.string().min(2).max(10),
+  domainId: z.string().min(2).max(100),
   domainName: z.string().min(2).max(255),
   fileName: z.string().min(1).max(255),
   fileSize: z.number().positive(),

@@ -1,6 +1,6 @@
 /**
  * NDI Domains Configuration
- * 15 domains for Nationality Data Index assessment
+ * 12 domains for Nationality Data Index assessment
  */
 
 export const NDI_DOMAINS = [
@@ -10,8 +10,8 @@ export const NDI_DOMAINS = [
     order: 1,
   },
   {
-    id: "2_Data_Catalog_Metadata",
-    name: "Data Catalog & Metadata",
+    id: "2_Data_Catalog",
+    name: "Data Catalog",
     order: 2,
   },
   {
@@ -25,59 +25,44 @@ export const NDI_DOMAINS = [
     order: 4,
   },
   {
-    id: "5_Document_Management",
-    name: "Document Management",
+    id: "5_Data_Security",
+    name: "Data Security",
     order: 5,
   },
   {
-    id: "6_Data_Architecture",
-    name: "Data Architecture",
+    id: "6_Personal_Data_Protection",
+    name: "Personal Data Protection",
     order: 6,
   },
   {
-    id: "7_Data_Sharing",
-    name: "Data Sharing",
+    id: "7_Data_Classification",
+    name: "Data Classification",
     order: 7,
   },
   {
-    id: "8_Master_Data",
-    name: "Master Data",
+    id: "8_Training_Awareness",
+    name: "Training & Awareness",
     order: 8,
   },
   {
-    id: "9_Analytics_BI",
-    name: "Analytics & BI",
+    id: "9_Audit_Compliance",
+    name: "Audit & Compliance",
     order: 9,
   },
   {
-    id: "10_Data_Value",
-    name: "Data Value",
+    id: "10_Risk_Management",
+    name: "Risk Management",
     order: 10,
   },
   {
-    id: "11_Open_Data",
-    name: "Open Data",
+    id: "11_Governance_Meetings",
+    name: "Governance Meetings",
     order: 11,
   },
   {
-    id: "12_Freedom_of_Information",
-    name: "Freedom of Information",
+    id: "12_Supporting_Documents",
+    name: "Supporting Documents",
     order: 12,
-  },
-  {
-    id: "13_Data_Classification",
-    name: "Data Classification",
-    order: 13,
-  },
-  {
-    id: "14_Personal_Data_Protection",
-    name: "Personal Data Protection",
-    order: 14,
-  },
-  {
-    id: "15_Data_Security",
-    name: "Data Security",
-    order: 15,
   },
 ] as const;
 

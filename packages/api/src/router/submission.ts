@@ -90,7 +90,11 @@ export const submissionRouter = {
           submissionId: submission.id,
           aiServiceReportId: data.evaluation_id,
           reportPath: data.report_path,
-          reportData: JSON.stringify(data.mimic_json),
+          reportData: JSON.stringify({
+            evaluation_id: data.evaluation_id,
+            mimic_json: data.mimic_json,
+            file_evaluations: data.file_evaluations,
+          }),
           status: "completed",
           completedAt: new Date(),
         });
