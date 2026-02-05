@@ -29,7 +29,7 @@ ARG HF_TOKEN
 ENV HF_TOKEN=${HF_TOKEN}
 ENV HF_HUB_OFFLINE=0
 
-RUN python3 -c "import os; os.environ['HF_HUB_OFFLINE']='0'; \
+RUN /app/.venv/bin/python -c "import os; os.environ['HF_HUB_OFFLINE']='0'; \
     from huggingface_hub import login, snapshot_download; \
     token = os.getenv('HF_TOKEN'); \
     login(token=token) if token else None; \
