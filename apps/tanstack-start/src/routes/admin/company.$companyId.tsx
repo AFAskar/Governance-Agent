@@ -253,6 +253,33 @@ function RouteComponent() {
           </div>
         </div>
 
+        {/* Notice when evaluation failed or pending */}
+        {!hasEvaluations && (
+          <div className={`rounded-xl p-6 mb-6 border ${submission.status === "failed" ? "bg-red-50 border-red-200" : "bg-yellow-50 border-yellow-200"}`}>
+            <div className="flex items-start gap-3">
+              <svg className={`w-6 h-6 flex-shrink-0 mt-0.5 ${submission.status === "failed" ? "text-ndmo-red" : "text-ndmo-yellow"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h3 className={`font-semibold ${submission.status === "failed" ? "text-red-800" : "text-yellow-800"}`}>
+                  {submission.status === "failed"
+                    ? "AI Evaluation Failed"
+                    : submission.status === "processing"
+                      ? "Evaluation In Progress"
+                      : "Evaluation Pending"}
+                </h3>
+                <p className={`text-sm mt-1 ${submission.status === "failed" ? "text-red-700" : "text-yellow-700"}`}>
+                  {submission.status === "failed"
+                    ? "The AI service could not evaluate this submission. Your uploaded files have been saved. Please try submitting again when the AI service is available."
+                    : submission.status === "processing"
+                      ? "The AI service is currently evaluating this submission. Please check back shortly."
+                      : "This submission is waiting to be evaluated."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Domain Evaluations */}
         <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
           <h2 className="text-2xl font-bold text-ndmo-blue-dark mb-6">
