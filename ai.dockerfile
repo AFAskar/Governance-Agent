@@ -23,6 +23,19 @@ COPY services/ai-service/ ./
 
 RUN uv sync --no-dev
 
+# Download HuggingFace model during build to cache it in the image
+# This prevents runtime downloads and makes the container start faster
+ARG HF_TOKEN
+ENV HF_TOKEN=${HF_TOKEN}
+ENV HF_HUB_OFFLINE=0
+
+RUN python3 -c "import os; os.environ['HF_HUB_OFFLINE']='0'; \
+    from huggingface_hub import login, snapshot_download; \
+    token = os.getenv('HF_TOKEN'); \
+    login(token=token) if token else None; \
+    snapshot_download('google/embeddinggemma-300m', token=token); \
+    print('✓ Model cached successfully')"
+
 # Remove unnecessary files
 RUN find /app/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 RUN find /app/.venv -type f -name "*.pyc" -delete
@@ -38,11 +51,15 @@ WORKDIR /app
 ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV HF_HUB_OFFLINE=1
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy the HuggingFace cache from builder
+COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
 
 # Copy only the virtual environment and application code
 COPY --from=builder /app/.venv /app/.venv
@@ -50,8 +67,13 @@ COPY --from=builder /app/src /app/src
 COPY --from=builder /app/run.py /app/run.py
 COPY --from=builder /app/main.py /app/main.py
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Create non-root user and set ownership
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app && \
+    mkdir -p /home/appuser/.cache && \
+    cp -r /root/.cache/huggingface /home/appuser/.cache/ && \
+    chown -R appuser:appuser /home/appuser/.cache
+    
 USER appuser
 
 ENV PATH="/app/.venv/bin:$PATH"
