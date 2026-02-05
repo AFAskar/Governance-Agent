@@ -73,7 +73,7 @@ RUN useradd -m -u 1000 appuser && \
     mkdir -p /home/appuser/.cache && \
     cp -r /root/.cache/huggingface /home/appuser/.cache/ && \
     chown -R appuser:appuser /home/appuser/.cache
-    
+
 USER appuser
 
 ENV PATH="/app/.venv/bin:$PATH"
