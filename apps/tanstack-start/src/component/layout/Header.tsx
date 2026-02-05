@@ -23,9 +23,16 @@ export function Header() {
         <nav className="flex items-center gap-6">
           {user ? (
             <>
-              <span className="text-ndmo-gray-medium text-sm">
-                {user.email}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-ndmo-gray-medium text-sm">
+                  {user.email}
+                </span>
+                {permissions && permissions.length > 0 && (
+                  <span className="text-xs text-gray-500 font-mono">
+                    [{permissions.join(", ")}]
+                  </span>
+                )}
+              </div>
               {canViewAdmin && (
                 <Link
                   to="/admin"
