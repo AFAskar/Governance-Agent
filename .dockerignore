@@ -12,6 +12,12 @@ pids
 qdrant_data/
 db_data/
 
+# Test samples (mounted as volume, not needed in build)
+test_samples/
+
+# Git
+.git/
+
 # Environment files
 .env
 .env.local
