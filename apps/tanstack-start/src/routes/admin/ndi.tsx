@@ -66,8 +66,10 @@ interface CompanyCardProps {
     submission: {
         id: string;
         companyName: string;
-        createdAt: string;
+        userId: string;
         status: string;
+        createdAt: Date;
+        updatedAt: Date;
     };
 }
 
