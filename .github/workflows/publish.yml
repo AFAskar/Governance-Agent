@@ -74,3 +74,22 @@ jobs:
 
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
+
+  deploy-to-railway:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Trigger AI Service Redeploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway redeploy --service ${{ secrets.RAILWAY_AI_SERVICE_ID }}
+      
+      - name: Trigger TanStack Start Service Redeploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway redeploy --service ${{ secrets.RAILWAY_TANSTACK_SERVICE_ID }}

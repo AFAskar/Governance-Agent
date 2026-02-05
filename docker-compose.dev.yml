@@ -1,8 +1,6 @@
 services:
   ai_service:
-    build:
-      context: .
-      dockerfile: ai.dockerfile
+    image: abo3skr/governance-agent-ai_service:latest
     ports:
       - "5002:8000"
     env_file:
