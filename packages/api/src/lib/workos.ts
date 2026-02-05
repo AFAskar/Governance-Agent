@@ -12,9 +12,9 @@ export const workos = new WorkOS(workosApiKey);
  * Submission permissions for RBAC
  */
 export const SUBMISSION_PERMISSIONS = {
-  READ: "submissions:read",
-  WRITE: "submissions:write",
-  DELETE: "submissions:delete",
+  READ: "submitions:read",
+  WRITE: "submitions:write",
+  DELETE: "submitions:delete",
 } as const;
 
 export type SubmissionPermission =
