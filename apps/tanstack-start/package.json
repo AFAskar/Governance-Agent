@@ -10,7 +10,7 @@
     "format": "prettier --check . --ignore-path ../../.gitignore --ignore-path .prettierignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "typecheck": "tsc --noEmit",
-    "with-env": "dotenv -e ../../.env --"
+    "with-env": "dotenv -e ../../.env.local --"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",

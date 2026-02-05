@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { getAuth, getSignInUrl } from "@governance/auth";
 
 import { Button } from "@governance/ui/button";
 import {
@@ -33,6 +34,13 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const Route = createFileRoute("/submit")({
+  beforeLoad: async ({ location }) => {
+    const auth = await getAuth();
+    if (!auth.user) {
+      const signInUrl = await getSignInUrl();
+      throw redirect({ href: signInUrl });
+    }
+  },
   component: RouteComponent,
 });
 
