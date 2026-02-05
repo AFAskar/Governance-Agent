@@ -20,9 +20,8 @@ import {
 import { Toaster } from "@governance/ui/toast";
 
 import appCss from "~/styles.css?url";
-
-import { NotFound } from "../component/NotFound";
 import { Header } from "../component/layout/Header";
+import { NotFound } from "../component/NotFound";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -67,6 +66,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <Scripts />
         </body>
       </html>
-    </ThemeProvider >
+    </ThemeProvider>
   );
 }

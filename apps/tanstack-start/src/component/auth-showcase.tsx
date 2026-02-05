@@ -1,6 +1,6 @@
-import { useAuth } from "@workos/authkit-tanstack-react-start/client";
-import { getSignInUrl } from "@workos/authkit-tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
+import { getSignInUrl } from "@workos/authkit-tanstack-react-start";
+import { useAuth } from "@workos/authkit-tanstack-react-start/client";
 
 import { Button } from "@governance/ui/button";
 

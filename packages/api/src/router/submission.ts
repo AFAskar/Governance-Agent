@@ -112,7 +112,11 @@ export const submissionRouter = {
           .update(schema.Submission)
           .set({ status: "failed" })
           .where(eq(schema.Submission.id, submission.id));
-        return { success: true, submissionId: submission.id, evaluationFailed: true };
+        return {
+          success: true,
+          submissionId: submission.id,
+          evaluationFailed: true,
+        };
       }
     }),
 
@@ -133,7 +137,10 @@ export const submissionRouter = {
         .limit(1);
 
       if (!submission) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Submission not found",
+        });
       }
 
       const files = await ctx.db

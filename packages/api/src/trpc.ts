@@ -10,7 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
-import type { UserInfo, NoUserInfo } from "@governance/auth";
+import type { NoUserInfo, UserInfo } from "@governance/auth";
 import { db } from "@governance/db/client";
 
 /**

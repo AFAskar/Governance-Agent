@@ -1,125 +1,159 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+
 import { useTRPC } from "~/lib/trpc";
 
 export const Route = createFileRoute("/admin/ndi")({
-    component: RouteComponent,
+  component: RouteComponent,
 });
 
-
-
 function RouteComponent() {
-    const trpc = useTRPC();
-    const { data: submissions, isLoading, error } = useQuery(trpc.submission.getAll.queryOptions());
+  const trpc = useTRPC();
+  const {
+    data: submissions,
+    isLoading,
+    error,
+  } = useQuery(trpc.submission.getAll.queryOptions());
 
-    return (
-        <main className="container mx-auto px-4 py-12">
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <Link
-                        to="/admin"
-                        className="text-ndmo-blue-medium hover:text-ndmo-blue-dark mb-4 inline-flex items-center gap-2"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Back to Dashboard
-                    </Link>
-                    <h1 className="text-4xl font-bold text-ndmo-blue-dark mb-2">
-                        NDI Submissions
-                    </h1>
-                    <p className="text-ndmo-gray-medium">
-                        View and manage all company submissions
-                    </p>
-                </div>
+  return (
+    <main className="container mx-auto px-4 py-12">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <Link
+            to="/admin"
+            className="text-ndmo-blue-medium hover:text-ndmo-blue-dark mb-4 inline-flex items-center gap-2"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Dashboard
+          </Link>
+          <h1 className="text-ndmo-blue-dark mb-2 text-4xl font-bold">
+            NDI Submissions
+          </h1>
+          <p className="text-ndmo-gray-medium">
+            View and manage all company submissions
+          </p>
+        </div>
 
-                {isLoading ? (
-                    <div className="text-center py-12 text-ndmo-gray-medium">Loading submissions...</div>
-                ) : error ? (
-                    <div className="text-center py-16">
-                        <p className="text-ndmo-red mb-2">Failed to load submissions</p>
-                        <p className="text-sm text-ndmo-gray-medium">{error.message}</p>
-                    </div>
-                ) : !submissions || submissions.length === 0 ? (
-                    <div className="text-center py-16">
-                        <h3 className="text-xl font-semibold text-ndmo-gray-dark mb-2">
-                            No Submissions Yet
-                        </h3>
-                        <p className="text-ndmo-gray-medium">
-                            Company submissions will appear here
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {submissions.map((submission) => (
-                            <CompanyCard key={submission.id} submission={submission} />
-                        ))}
-                    </div>
-                )}
-            </div>
-        </main>
-    );
+        {isLoading ? (
+          <div className="text-ndmo-gray-medium py-12 text-center">
+            Loading submissions...
+          </div>
+        ) : error ? (
+          <div className="py-16 text-center">
+            <p className="text-ndmo-red mb-2">Failed to load submissions</p>
+            <p className="text-ndmo-gray-medium text-sm">{error.message}</p>
+          </div>
+        ) : !submissions || submissions.length === 0 ? (
+          <div className="py-16 text-center">
+            <h3 className="text-ndmo-gray-dark mb-2 text-xl font-semibold">
+              No Submissions Yet
+            </h3>
+            <p className="text-ndmo-gray-medium">
+              Company submissions will appear here
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {submissions.map((submission) => (
+              <CompanyCard key={submission.id} submission={submission} />
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
 }
 
 interface CompanyCardProps {
-    submission: {
-        id: string;
-        companyName: string;
-        userId: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-    };
+  submission: {
+    id: string;
+    companyName: string;
+    userId: string;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+  };
 }
 
 function CompanyCard({ submission }: CompanyCardProps) {
-    const statusColors = {
-        completed: "bg-ndmo-green text-primary",
-        processing: "bg-ndmo-yellow text-primary",
-        pending: "bg-ndmo-gray-medium text-primary",
-        failed: "bg-ndmo-red text-primary",
-    };
+  const statusColors = {
+    completed: "bg-ndmo-green text-primary",
+    processing: "bg-ndmo-yellow text-primary",
+    pending: "bg-ndmo-gray-medium text-primary",
+    failed: "bg-ndmo-red text-primary",
+  };
 
-    const statusColor = statusColors[submission.status as keyof typeof statusColors] || statusColors.pending;
+  const statusColor =
+    statusColors[submission.status as keyof typeof statusColors] ||
+    statusColors.pending;
 
-    return (
-        <Link
-            to="/admin/company/$companyId"
-            params={{ companyId: submission.id }}
-            className="group"
-        >
-            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-transparent hover:border-ndmo-blue-medium hover:shadow-lg transition-all duration-300">
-                {/* Company Name */}
-                <h3 className="text-xl font-bold text-ndmo-blue-dark mb-3 group-hover:text-ndmo-blue-medium transition-colors">
-                    {submission.companyName}
-                </h3>
+  return (
+    <Link
+      to="/admin/company/$companyId"
+      params={{ companyId: submission.id }}
+      className="group"
+    >
+      <div className="hover:border-ndmo-blue-medium rounded-xl border-2 border-transparent bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg">
+        {/* Company Name */}
+        <h3 className="text-ndmo-blue-dark group-hover:text-ndmo-blue-medium mb-3 text-xl font-bold transition-colors">
+          {submission.companyName}
+        </h3>
 
-                {/* Metadata */}
-                <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-ndmo-gray-medium">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {new Date(submission.createdAt).toLocaleDateString()}
-                    </div>
-                </div>
+        {/* Metadata */}
+        <div className="mb-4 space-y-2">
+          <div className="text-ndmo-gray-medium flex items-center gap-2 text-sm">
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {new Date(submission.createdAt).toLocaleDateString()}
+          </div>
+        </div>
 
-                {/* Status Badge */}
-                <div className="flex items-center justify-between">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor} uppercase tracking-wide`}>
-                        {submission.status}
-                    </span>
-                    <svg
-                        className="w-5 h-5 text-ndmo-blue-medium opacity-0 group-hover:opacity-100 transition-opacity"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
-            </div>
-        </Link>
-    );
+        {/* Status Badge */}
+        <div className="flex items-center justify-between">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor} tracking-wide uppercase`}
+          >
+            {submission.status}
+          </span>
+          <svg
+            className="text-ndmo-blue-medium h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </div>
+      </div>
+    </Link>
+  );
 }

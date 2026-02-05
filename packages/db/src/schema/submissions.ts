@@ -1,9 +1,21 @@
-import { pgTable, uuid, varchar, text, timestamp, integer } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 // Submission status enum
-export const submissionStatus = ["pending", "processing", "completed", "failed"] as const;
+export const submissionStatus = [
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+] as const;
 
 // Main submissions table
 export const Submission = pgTable("submission", (t) => ({
@@ -18,7 +30,10 @@ export const Submission = pgTable("submission", (t) => ({
 // Submission files table - stores uploaded files per domain
 export const SubmissionFile = pgTable("submission_file", (t) => ({
   id: t.uuid().notNull().primaryKey().defaultRandom(),
-  submissionId: t.uuid().notNull().references(() => Submission.id, { onDelete: "cascade" }),
+  submissionId: t
+    .uuid()
+    .notNull()
+    .references(() => Submission.id, { onDelete: "cascade" }),
   domainId: t.varchar({ length: 100 }).notNull(),
   domainName: t.varchar({ length: 255 }).notNull(),
   fileName: t.varchar({ length: 255 }).notNull(),
@@ -30,7 +45,10 @@ export const SubmissionFile = pgTable("submission_file", (t) => ({
 // Evaluation reports table - stores AI service evaluation results
 export const EvaluationReport = pgTable("evaluation_report", (t) => ({
   id: t.uuid().notNull().primaryKey().defaultRandom(),
-  submissionId: t.uuid().notNull().references(() => Submission.id, { onDelete: "cascade" }),
+  submissionId: t
+    .uuid()
+    .notNull()
+    .references(() => Submission.id, { onDelete: "cascade" }),
   aiServiceReportId: t.varchar({ length: 255 }),
   reportPath: t.text(),
   reportData: t.text(), // JSON string of evaluation results
@@ -41,7 +59,10 @@ export const EvaluationReport = pgTable("evaluation_report", (t) => ({
 
 // Zod schemas for validation
 export const CreateSubmissionSchema = createInsertSchema(Submission, {
-  companyName: z.string().min(2, "Company name must be at least 2 characters").max(255),
+  companyName: z
+    .string()
+    .min(2, "Company name must be at least 2 characters")
+    .max(255),
 }).omit({
   id: true,
   status: true,
@@ -61,7 +82,8 @@ export const CreateSubmissionFileSchema = createInsertSchema(SubmissionFile, {
 
 export const SelectSubmissionSchema = createSelectSchema(Submission);
 export const SelectSubmissionFileSchema = createSelectSchema(SubmissionFile);
-export const SelectEvaluationReportSchema = createSelectSchema(EvaluationReport);
+export const SelectEvaluationReportSchema =
+  createSelectSchema(EvaluationReport);
 
 // Type exports
 export type Submission = typeof Submission.$inferSelect;

@@ -134,7 +134,6 @@ export function ThemeProvider({ children }: React.PropsWithChildren) {
         toggleMode,
       }}
     >
-
       {children}
     </ThemeContext>
   );

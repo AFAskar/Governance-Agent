@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+
 import { IndexCard } from "~/component/index/IndexCard";
 
 export const Route = createFileRoute("/")({
@@ -8,19 +9,19 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   return (
     <main className="container mx-auto px-4 py-16">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-ndmo-blue-dark mb-4">
+        <div className="mb-16 text-center">
+          <h1 className="text-ndmo-blue-dark mb-4 text-5xl font-bold">
             National Data Indices
           </h1>
-          <p className="text-lg text-ndmo-gray-medium max-w-2xl mx-auto">
+          <p className="text-ndmo-gray-medium mx-auto max-w-2xl text-lg">
             Select an index to begin your assessment
           </p>
         </div>
 
         {/* Index Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
           <IndexCard
             title="NDI"
             subtitle="NATIONALITY DATA INDEX"
