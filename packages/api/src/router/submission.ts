@@ -74,6 +74,19 @@ export const submissionRouter = {
       const domainIds = files.map((f) => f.domainId).join(",");
 
       // 5. Call AI Service
+      console.log(
+        "[AI Service] Submitting evaluation to:",
+        process.env.AI_SERVICE_URL || "http://localhost:8000",
+      );
+      console.log(
+        "[AI Service] Framework:",
+        "NDI",
+        "| Files count:",
+        blobs.length,
+        "| Domain IDs:",
+        domainIds,
+      );
+
       try {
         const response = await submitEvaluationApiV1EvaluationsSubmitPost({
           client,
@@ -84,8 +97,24 @@ export const submissionRouter = {
           },
         });
 
+        console.log("[AI Service] Response received:", {
+          hasError: !!response.error,
+          hasData: !!response.data,
+          status: response.response?.status,
+          statusText: response.response?.statusText,
+        });
+
         if (response.error) {
-          throw new Error(JSON.stringify(response.error));
+          const errorInfo = {
+            error: response.error,
+            status: response.response?.status,
+            statusText: response.response?.statusText,
+            url: response.response?.url,
+          };
+          console.error("[AI Service] Response contained error:", errorInfo);
+          throw new Error(
+            `AI Service Error (${response.response?.status}): ${JSON.stringify(response.error)}`,
+          );
         }
 
         const data = response.data;
@@ -113,7 +142,13 @@ export const submissionRouter = {
 
         return { success: true, submissionId: submission.id };
       } catch (e) {
-        console.error("AI Service Submission Failed", e);
+        console.error("[AI Service] Submission Failed - Full Error:", {
+          error: e,
+          errorType: e?.constructor?.name,
+          errorMessage: e instanceof Error ? e.message : String(e),
+          errorStack: e instanceof Error ? e.stack : undefined,
+          serviceUrl: process.env.AI_SERVICE_URL || "http://localhost:8000",
+        });
         await ctx.db
           .update(schema.Submission)
           .set({ status: "failed" })
@@ -269,6 +304,19 @@ export const submissionRouter = {
       const domainIds = files.map((f) => f.domainId).join(",");
 
       // 6. Call AI Service
+      console.log(
+        "[AI Service] Rerunning evaluation to:",
+        process.env.AI_SERVICE_URL || "http://localhost:8000",
+      );
+      console.log(
+        "[AI Service] Submission ID:",
+        input.submissionId,
+        "| Files count:",
+        blobs.length,
+        "| Domain IDs:",
+        domainIds,
+      );
+
       try {
         const response = await submitEvaluationApiV1EvaluationsSubmitPost({
           client,
@@ -279,8 +327,27 @@ export const submissionRouter = {
           },
         });
 
+        console.log("[AI Service] Rerun response received:", {
+          hasError: !!response.error,
+          hasData: !!response.data,
+          status: response.response?.status,
+          statusText: response.response?.statusText,
+        });
+
         if (response.error) {
-          throw new Error(JSON.stringify(response.error));
+          const errorInfo = {
+            error: response.error,
+            status: response.response?.status,
+            statusText: response.response?.statusText,
+            url: response.response?.url,
+          };
+          console.error(
+            "[AI Service] Rerun response contained error:",
+            errorInfo,
+          );
+          throw new Error(
+            `AI Service Error (${response.response?.status}): ${JSON.stringify(response.error)}`,
+          );
         }
 
         const data = response.data;
@@ -308,7 +375,17 @@ export const submissionRouter = {
 
         return { success: true };
       } catch (e) {
-        console.error("AI Service Rerun Failed", e);
+        const errorDetails = {
+          error: e,
+          errorType: e?.constructor?.name,
+          errorMessage: e instanceof Error ? e.message : String(e),
+          errorStack: e instanceof Error ? e.stack : undefined,
+          serviceUrl: process.env.AI_SERVICE_URL || "http://localhost:8000",
+          submissionId: input.id,
+        };
+
+        console.error("[AI Service] Rerun Failed - Full Error:", errorDetails);
+
         await ctx.db
           .update(schema.Submission)
           .set({ status: "failed", updatedAt: new Date() })
@@ -316,8 +393,8 @@ export const submissionRouter = {
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message:
-            "Failed to rerun evaluation. The AI service may be unavailable.",
+          message: `Failed to rerun evaluation. AI service error: ${errorDetails.errorMessage}. Service URL: ${errorDetails.serviceUrl}`,
+          cause: e,
         });
       }
     }),
