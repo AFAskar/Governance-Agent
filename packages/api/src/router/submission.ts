@@ -70,13 +70,17 @@ export const submissionRouter = {
         return new File([buffer], f.name, { type: f.type });
       });
 
-      // 4. Call AI Service
+      // 4. Prepare domain_ids (one per file, comma-separated)
+      const domainIds = files.map((f) => f.domainId).join(",");
+
+      // 5. Call AI Service
       try {
         const response = await submitEvaluationApiV1EvaluationsSubmitPost({
           client,
           body: {
             framework_name: "NDI",
             files: blobs,
+            domain_ids: domainIds,
           },
         });
 
@@ -228,7 +232,9 @@ export const submissionRouter = {
       }
 
       // Check if files have content stored
-      const filesWithoutContent = files.filter((f) => !f.fileContent);
+      const filesWithoutContent = files.filter(
+        (f) => !(f as unknown as { fileContent?: string }).fileContent
+      );
       if (filesWithoutContent.length > 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -250,19 +256,25 @@ export const submissionRouter = {
 
       // 4. Prepare files for AI Service
       const blobs = files.map((f) => {
-        const buffer = Buffer.from(f.fileContent!, "base64");
+        const fileContent = (f as unknown as { fileContent?: string }).fileContent;
+        const fileType = (f as unknown as { fileType?: string }).fileType;
+        const buffer = Buffer.from(fileContent!, "base64");
         return new File([buffer], f.fileName, {
-          type: f.fileType ?? "application/octet-stream",
+          type: fileType ?? "application/octet-stream",
         });
       });
 
-      // 5. Call AI Service
+      // 5. Prepare domain_ids (one per file, comma-separated)
+      const domainIds = files.map((f) => f.domainId).join(",");
+
+      // 6. Call AI Service
       try {
         const response = await submitEvaluationApiV1EvaluationsSubmitPost({
           client,
           body: {
             framework_name: "NDI",
             files: blobs,
+            domain_ids: domainIds,
           },
         });
 

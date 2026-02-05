@@ -19,7 +19,7 @@ def _project_root() -> Path:
 def run_evaluation_agent(
     framework_name: str,
     files: list[tuple[str, bytes]],
-    control_ids_per_file: list[str] | None = None,
+    domain_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Run the evaluation agent: persist files, build mimic JSON, run graph, return final state.
@@ -27,8 +27,8 @@ def run_evaluation_agent(
     Args:
         framework_name: Framework name (e.g. NDI).
         files: List of (filename, bytes); 1 or more files.
-        control_ids_per_file: List of comma-separated control ID strings (one per file).
-            Must have the same length as files. Can be empty strings if not provided.
+        domain_ids: List of domain IDs (one per file). Each domain ID maps to a set of controls.
+            Must have the same length as files if provided.
 
     Returns:
         dict with mimic_json, evaluation_id, report_path, file_evaluations.
@@ -36,15 +36,15 @@ def run_evaluation_agent(
     if not files:
         raise ValueError("At least one file is required")
     n = len(files)
-    if control_ids_per_file is not None and len(control_ids_per_file) != n:
-        raise ValueError(f"control_ids_per_file has {len(control_ids_per_file)} entries but {n} files; they must match")
+    if domain_ids is not None and len(domain_ids) != n:
+        raise ValueError(f"domain_ids has {len(domain_ids)} entries but {n} files; they must match")
 
     evaluation_id = str(uuid.uuid4())
     root = _project_root()
     eval_dir = root / "data" / "evaluations" / evaluation_id
     eval_dir.mkdir(parents=True, exist_ok=True)
 
-    # Persist files and build file list with path and field_id
+    # Persist files and build file list with path, field_id, and domain_id
     file_list = []
     for i, (filename, body) in enumerate(files):
         raw_name = Path(filename or f"file_{i+1}").name
@@ -52,14 +52,20 @@ def run_evaluation_agent(
         path = eval_dir / safe_name
         path.write_bytes(body)
         field_id = f"field_{i + 1}"
-        file_list.append({"path": str(path), "extracted_text": "", "field_id": field_id})
+        domain_id = domain_ids[i] if domain_ids else ""
+        file_list.append({
+            "path": str(path),
+            "extracted_text": "",
+            "field_id": field_id,
+            "domain_id": domain_id,
+        })
 
-    # Build mimic JSON: from client control_ids (must match file count)
-    if control_ids_per_file:
-        field_control_ids = [(f"field_{i+1}", s.strip()) for i, s in enumerate(control_ids_per_file)]
+    # Build mimic JSON from domain_ids
+    if domain_ids:
+        field_domain_ids = [(f"field_{i+1}", d) for i, d in enumerate(domain_ids)]
     else:
-        field_control_ids = [(f"field_{i+1}", "") for i in range(n)]
-    mimic_json = build_mimic_json(framework_name, field_control_ids)
+        field_domain_ids = [(f"field_{i+1}", "") for i in range(n)]
+    mimic_json = build_mimic_json(framework_name, field_domain_ids)
 
     initial_state: EvaluationState = {
         "evaluation_id": evaluation_id,

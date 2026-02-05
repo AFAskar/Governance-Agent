@@ -4,58 +4,68 @@ services:
       context: .
       dockerfile: ai.dockerfile
     ports:
-      - "5050:8000"
+      - "5002:8000"
     env_file:
       - .env
     environment:
       - PYTHONPATH=/app/src
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - ./services/ai-service:/app
-      - ./test_samples:/app/test_samples
-      - /app/.venv
     depends_on:
       vector_db:
-        condition: service_healthy
+        condition: service_started
     restart: unless-stopped
-    develop:
-      watch:
-        - action: sync
-          path: ./services/ai-service/src
-          target: /app/src
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   frontend:
     build:
       context: .
       dockerfile: next.dockerfile
-      target: development
     ports:
-      - "5001:3001"
+      - "5001:3000"
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
-    volumes:
-      - ./apps/tanstack-start:/app/apps/tanstack-start
-      - ./packages:/app/packages
-      - ./tooling:/app/tooling
-      - /app/node_modules
-      - /app/apps/tanstack-start/node_modules
+      - NODE_ENV=production
+      - AI_HOST=ai_service
+      - AI_SERVICE_URL=http://ai_service:8000
+      - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@application_db:5432/${POSTGRES_DB:-app_db}
     depends_on:
-      - ai_service
+      ai_service:
+        condition: service_started
+      application_db:
+        condition: service_healthy
     restart: unless-stopped
-    develop:
-      watch:
-        - action: sync
-          path: ./apps/tanstack-start/src
-          target: /app/apps/tanstack-start/src
-        - action: rebuild
-          path: ./apps/tanstack-start/package.json
+
+  vector_db:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    expose:
+      - 6333
+      - 6334
+      - 6335
+    configs:
+      - source: qdrant_config
+        target: /qdrant/config/production.yaml
+    volumes:
+      - qdrant_data:/qdrant/storage
 
   application_db:
     image: postgres:15
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
@@ -63,7 +73,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_dev_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -71,24 +81,13 @@ services:
       retries: 5
       start_period: 30s
 
-  vector_db:
-    image: qdrant/qdrant:latest
-    restart: unless-stopped
-    container_name: qdrant_dev
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_dev_data:/qdrant/storage
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/localhost/6333'"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+configs:
+  qdrant_config:
+    content: |
+      log_level: INFO
 
 volumes:
-  db_dev_data:
+  db_data:
     driver: local
-  qdrant_dev_data:
+  qdrant_data:
     driver: local
