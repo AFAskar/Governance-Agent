@@ -310,7 +310,7 @@ export const submissionRouter = {
       );
       console.log(
         "[AI Service] Submission ID:",
-        input.submissionId,
+        input.id,
         "| Files count:",
         blobs.length,
         "| Domain IDs:",
