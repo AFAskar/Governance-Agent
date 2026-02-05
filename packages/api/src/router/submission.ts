@@ -200,7 +200,7 @@ export const submissionRouter = {
     }),
 
   rerunEvaluation: createPermissionProcedure([SUBMISSION_PERMISSIONS.WRITE])
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.uuid() }))
     .mutation(async ({ ctx, input }) => {
       const client = getAIClient();
 
@@ -233,7 +233,7 @@ export const submissionRouter = {
 
       // Check if files have content stored
       const filesWithoutContent = files.filter(
-        (f) => !(f as unknown as { fileContent?: string }).fileContent
+        (f) => !(f as unknown as { fileContent?: string }).fileContent,
       );
       if (filesWithoutContent.length > 0) {
         throw new TRPCError({
@@ -256,7 +256,8 @@ export const submissionRouter = {
 
       // 4. Prepare files for AI Service
       const blobs = files.map((f) => {
-        const fileContent = (f as unknown as { fileContent?: string }).fileContent;
+        const fileContent = (f as unknown as { fileContent?: string })
+          .fileContent;
         const fileType = (f as unknown as { fileType?: string }).fileType;
         const buffer = Buffer.from(fileContent!, "base64");
         return new File([buffer], f.fileName, {
