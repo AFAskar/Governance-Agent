@@ -112,11 +112,7 @@ export const submissionRouter = {
           .update(schema.Submission)
           .set({ status: "failed" })
           .where(eq(schema.Submission.id, submission.id));
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to process submission with AI service",
-          cause: e,
-        });
+        return { success: true, submissionId: submission.id, evaluationFailed: true };
       }
     }),
 

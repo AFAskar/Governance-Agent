@@ -87,15 +87,19 @@ function RouteComponent() {
                     }
                 }
 
-                await createSubmission.mutateAsync({
+                const result = await createSubmission.mutateAsync({
                     companyName: value.companyName,
                     files: filesToUpload
                 });
 
-                toast.success("Submission created successfully!");
-                await navigate({ to: "/" });
+                if (result.evaluationFailed) {
+                    toast.success("Submission saved. AI evaluation could not be completed — you can retry later.");
+                } else {
+                    toast.success("Submission created and evaluated successfully!");
+                }
+                await navigate({ to: "/admin/ndi" });
             } catch (error) {
-                toast.error("Failed to submit assessment");
+                toast.error("Failed to save submission. Please try again.");
                 console.error(error);
             } finally {
                 setIsSubmitting(false);
