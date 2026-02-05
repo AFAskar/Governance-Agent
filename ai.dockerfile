@@ -6,8 +6,10 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1
 ENV PYTHONPATH=/app/src
 ENV UV_INDEX_STRATEGY=unsafe-best-match
+ENV UV_HTTP_TIMEOUT=300
 
-COPY services/ai-service/pyproject.toml ./
+# Copy dependency files for caching
+COPY services/ai-service/pyproject.toml services/ai-service/uv.lock ./
 
 # Install CPU-only PyTorch to reduce image size dramatically
 RUN uv pip install --system --no-cache \
