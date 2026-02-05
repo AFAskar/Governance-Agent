@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { getAuth } from "@workos/authkit-tanstack-react-start";
+import { toast } from "@governance/ui/toast";
 
 import { NDI_DOMAINS } from "~/lib/ndi-domains";
 import { useTRPC } from "~/lib/trpc";
@@ -63,12 +64,6 @@ function getScore(decision: string): number {
   return SCORE_MAP[decision.toLowerCase()] ?? 0;
 }
 
-function getMaxScore(decision: string): number {
-  const d = decision.toLowerCase();
-  if (d === "compliant" || d === "not compliant") return 6;
-  return 6; // scale max is Leader = 6
-}
-
 function getDecisionColor(decision: string): string {
   const d = decision.toLowerCase();
   if (["leader", "excellent", "good", "compliant"].includes(d))
@@ -88,9 +83,33 @@ function getDecisionIcon(decision: string): string {
 function RouteComponent() {
   const { companyId } = Route.useParams();
   const trpc = useTRPC();
-  const { data, isLoading, error } = useQuery(
+  const { data, isLoading, error, refetch } = useQuery(
     trpc.submission.getById.queryOptions({ id: companyId }),
   );
+
+  const rerunEvaluation = useMutation(
+    trpc.submission.rerunEvaluation.mutationOptions(),
+  );
+
+  const [isRerunning, setIsRerunning] = useState(false);
+
+  const handleRerun = async () => {
+    try {
+      setIsRerunning(true);
+      toast.info("Starting evaluation...");
+      
+      await rerunEvaluation.mutateAsync({ id: companyId });
+      
+      toast.success("Evaluation completed successfully!");
+      await refetch();
+    } catch (err) {
+      console.error("Rerun failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to rerun evaluation";
+      toast.error(errorMessage);
+    } finally {
+      setIsRerunning(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -286,7 +305,7 @@ function RouteComponent() {
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <div>
+              <div className="flex-1">
                 <h3
                   className={`font-semibold ${submission.status === "failed" ? "text-red-800" : "text-yellow-800"}`}
                 >
@@ -305,6 +324,51 @@ function RouteComponent() {
                       ? "The AI service is currently evaluating this submission. Please check back shortly."
                       : "This submission is waiting to be evaluated."}
                 </p>
+                
+                {/* Rerun Button - only show for failed submissions */}
+                {submission.status === "failed" && (
+                  <button
+                    onClick={handleRerun}
+                    disabled={isRerunning}
+                    className="mt-4 bg-ndmo-blue-medium hover:bg-ndmo-blue-dark disabled:bg-ndmo-gray-medium flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+                  >
+                    {isRerunning ? (
+                      <>
+                        <svg
+                          className="h-4 w-4 animate-spin"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Rerunning Evaluation...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Rerun Evaluation
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>

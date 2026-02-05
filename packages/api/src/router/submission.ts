@@ -55,6 +55,8 @@ export const submissionRouter = {
         domainName: f.domainName,
         fileName: f.name,
         filePath: "ai-service-upload", // Placeholder
+        fileContent: f.content, // Store base64 content for rerun capability
+        fileType: f.type, // Store MIME type
         fileSize: f.size,
       }));
 
@@ -191,5 +193,119 @@ export const submissionRouter = {
         .where(eq(schema.Submission.id, input.id));
 
       return { success: true };
+    }),
+
+  rerunEvaluation: createPermissionProcedure([SUBMISSION_PERMISSIONS.WRITE])
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const client = getAIClient();
+
+      // 1. Get submission
+      const [submission] = await ctx.db
+        .select()
+        .from(schema.Submission)
+        .where(eq(schema.Submission.id, input.id))
+        .limit(1);
+
+      if (!submission) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Submission not found",
+        });
+      }
+
+      // 2. Get existing files with content
+      const files = await ctx.db
+        .select()
+        .from(schema.SubmissionFile)
+        .where(eq(schema.SubmissionFile.submissionId, input.id));
+
+      if (files.length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No files found for this submission",
+        });
+      }
+
+      // Check if files have content stored
+      const filesWithoutContent = files.filter((f) => !f.fileContent);
+      if (filesWithoutContent.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Some files do not have content stored. This submission was created before the rerun feature was implemented. Please create a new submission.",
+        });
+      }
+
+      // Update submission status to processing
+      await ctx.db
+        .update(schema.Submission)
+        .set({ status: "processing", updatedAt: new Date() })
+        .where(eq(schema.Submission.id, submission.id));
+
+      // 3. Delete old evaluation report if exists
+      await ctx.db
+        .delete(schema.EvaluationReport)
+        .where(eq(schema.EvaluationReport.submissionId, input.id));
+
+      // 4. Prepare files for AI Service
+      const blobs = files.map((f) => {
+        const buffer = Buffer.from(f.fileContent!, "base64");
+        return new File([buffer], f.fileName, {
+          type: f.fileType ?? "application/octet-stream",
+        });
+      });
+
+      // 5. Call AI Service
+      try {
+        const response = await submitEvaluationApiV1EvaluationsSubmitPost({
+          client,
+          body: {
+            framework_name: "NDI",
+            files: blobs,
+          },
+        });
+
+        if (response.error) {
+          throw new Error(JSON.stringify(response.error));
+        }
+
+        const data = response.data;
+        if (!data) throw new Error("No data returned from AI service");
+
+        // 6. Create new Evaluation Report
+        await ctx.db.insert(schema.EvaluationReport).values({
+          submissionId: submission.id,
+          aiServiceReportId: data.evaluation_id,
+          reportPath: data.report_path,
+          reportData: JSON.stringify({
+            evaluation_id: data.evaluation_id,
+            mimic_json: data.mimic_json,
+            file_evaluations: data.file_evaluations,
+          }),
+          status: "completed",
+          completedAt: new Date(),
+        });
+
+        // Update submission status to completed
+        await ctx.db
+          .update(schema.Submission)
+          .set({ status: "completed", updatedAt: new Date() })
+          .where(eq(schema.Submission.id, submission.id));
+
+        return { success: true };
+      } catch (e) {
+        console.error("AI Service Rerun Failed", e);
+        await ctx.db
+          .update(schema.Submission)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(schema.Submission.id, submission.id));
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Failed to rerun evaluation. The AI service may be unavailable.",
+        });
+      }
     }),
 } satisfies TRPCRouterRecord;

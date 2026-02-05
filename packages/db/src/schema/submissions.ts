@@ -38,6 +38,8 @@ export const SubmissionFile = pgTable("submission_file", (t) => ({
   domainName: t.varchar({ length: 255 }).notNull(),
   fileName: t.varchar({ length: 255 }).notNull(),
   filePath: t.text().notNull(),
+  fileContent: t.text(), // Base64 encoded file content for rerun capability
+  fileType: t.varchar({ length: 100 }), // MIME type of the file
   fileSize: t.integer().notNull(),
   uploadedAt: t.timestamp().defaultNow().notNull(),
 }));
