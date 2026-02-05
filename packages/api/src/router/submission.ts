@@ -7,10 +7,11 @@ import * as schema from "@governance/db/schema";
 
 import { submitEvaluationApiV1EvaluationsSubmitPost } from "../ai-client/sdk.gen";
 import { getAIClient } from "../lib/ai";
-import { protectedProcedure } from "../trpc";
+import { SUBMISSION_PERMISSIONS } from "../lib/workos";
+import { createPermissionProcedure } from "../trpc";
 
 export const submissionRouter = {
-  create: protectedProcedure
+  create: createPermissionProcedure([SUBMISSION_PERMISSIONS.WRITE])
     .input(
       z.object({
         companyName: z.string().min(1),
@@ -78,7 +79,6 @@ export const submissionRouter = {
         });
 
         if (response.error) {
-          // @ts-ignore
           throw new Error(JSON.stringify(response.error));
         }
 
@@ -120,14 +120,16 @@ export const submissionRouter = {
       }
     }),
 
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db
-      .select()
-      .from(schema.Submission)
-      .orderBy(desc(schema.Submission.createdAt));
-  }),
+  getAll: createPermissionProcedure([SUBMISSION_PERMISSIONS.READ]).query(
+    async ({ ctx }) => {
+      return ctx.db
+        .select()
+        .from(schema.Submission)
+        .orderBy(desc(schema.Submission.createdAt));
+    },
+  ),
 
-  getById: protectedProcedure
+  getById: createPermissionProcedure([SUBMISSION_PERMISSIONS.READ])
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const [submission] = await ctx.db
@@ -155,5 +157,39 @@ export const submissionRouter = {
         .limit(1);
 
       return { submission, files, report: report ?? null };
+    }),
+
+  delete: createPermissionProcedure([SUBMISSION_PERMISSIONS.DELETE])
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if submission exists and belongs to the user
+      const [submission] = await ctx.db
+        .select()
+        .from(schema.Submission)
+        .where(eq(schema.Submission.id, input.id))
+        .limit(1);
+
+      if (!submission) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Submission not found",
+        });
+      }
+
+      // Delete related records first (cascade delete)
+      await ctx.db
+        .delete(schema.EvaluationReport)
+        .where(eq(schema.EvaluationReport.submissionId, input.id));
+
+      await ctx.db
+        .delete(schema.SubmissionFile)
+        .where(eq(schema.SubmissionFile.submissionId, input.id));
+
+      // Delete the submission
+      await ctx.db
+        .delete(schema.Submission)
+        .where(eq(schema.Submission.id, input.id));
+
+      return { success: true };
     }),
 } satisfies TRPCRouterRecord;
