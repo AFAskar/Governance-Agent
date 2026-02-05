@@ -7,8 +7,8 @@ import {
   unstable_localLink,
 } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
-import SuperJSON from "superjson";
 import { getAuth } from "@workos/authkit-tanstack-react-start";
+import SuperJSON from "superjson";
 
 import * as Api from "@governance/api";
 

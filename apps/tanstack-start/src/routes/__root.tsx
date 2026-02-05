@@ -7,6 +7,8 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  ErrorComponent,
+  Link,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AuthKitProvider } from "@workos/authkit-tanstack-react-start/client";
@@ -18,11 +20,11 @@ import {
   ThemeToggle,
 } from "@governance/ui/theme";
 import { Toaster } from "@governance/ui/toast";
+import { Button } from "@governance/ui/button";
 
 import appCss from "~/styles.css?url";
-
-import { NotFound } from "../component/NotFound";
 import { Header } from "../component/layout/Header";
+import { NotFound } from "../component/NotFound";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -33,6 +35,25 @@ export const Route = createRootRouteWithContext<{
   }),
   component: RootComponent,
   notFoundComponent: NotFound,
+  errorComponent: ({ error }) => {
+    return (
+      <RootDocument>
+        <div className="container mx-auto px-4 py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="bg-ndmo-red/10 border-ndmo-red mb-6 rounded-lg border p-6">
+              <h1 className="text-ndmo-red mb-4 text-4xl font-bold">Error</h1>
+              <p className="text-ndmo-gray-dark mb-4 text-lg">
+                {error.message || "An unexpected error occurred"}
+              </p>
+            </div>
+            <Button asChild className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark">
+              <Link to="/">Go Home</Link>
+            </Button>
+          </div>
+        </div>
+      </RootDocument>
+    );
+  },
 });
 
 function RootComponent() {
@@ -67,6 +88,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <Scripts />
         </body>
       </html>
-    </ThemeProvider >
+    </ThemeProvider>
   );
 }

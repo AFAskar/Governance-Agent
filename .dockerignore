@@ -56,6 +56,15 @@ build/
 *.egg-info/
 dist/
 .pytest_cache/
+*.ipynb
+.ipynb_checkpoints/
+*.coverage
+htmlcov/
+
+# AI service specific
+services/ai-service/data/evaluations/
+services/ai-service/data/reports/
+services/ai-service/test.ipynb
 
 # Temporary files
 *.tmp

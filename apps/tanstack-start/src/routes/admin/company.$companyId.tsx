@@ -1,10 +1,30 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useTRPC } from "~/lib/trpc";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { getAuth } from "@workos/authkit-tanstack-react-start";
+import { toast } from "@governance/ui/toast";
+
 import { NDI_DOMAINS } from "~/lib/ndi-domains";
+import { useTRPC } from "~/lib/trpc";
+import { hasPermission, SUBMISSION_PERMISSIONS } from "~/lib/permissions";
 
 export const Route = createFileRoute("/admin/company/$companyId")({
+  beforeLoad: async () => {
+    const auth = await getAuth();
+    
+    // Check if user is authenticated
+    if (!auth.user) {
+      throw redirect({ to: "/" });
+    }
+    
+    // Check if user has read permission
+    if (!hasPermission(auth.permissions, SUBMISSION_PERMISSIONS.READ)) {
+      throw redirect({ 
+        to: "/",
+        search: { error: "insufficient_permissions" }
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -44,12 +64,6 @@ function getScore(decision: string): number {
   return SCORE_MAP[decision.toLowerCase()] ?? 0;
 }
 
-function getMaxScore(decision: string): number {
-  const d = decision.toLowerCase();
-  if (d === "compliant" || d === "not compliant") return 6;
-  return 6; // scale max is Leader = 6
-}
-
 function getDecisionColor(decision: string): string {
   const d = decision.toLowerCase();
   if (["leader", "excellent", "good", "compliant"].includes(d))
@@ -69,14 +83,38 @@ function getDecisionIcon(decision: string): string {
 function RouteComponent() {
   const { companyId } = Route.useParams();
   const trpc = useTRPC();
-  const { data, isLoading, error } = useQuery(
+  const { data, isLoading, error, refetch } = useQuery(
     trpc.submission.getById.queryOptions({ id: companyId }),
   );
+
+  const rerunEvaluation = useMutation(
+    trpc.submission.rerunEvaluation.mutationOptions(),
+  );
+
+  const [isRerunning, setIsRerunning] = useState(false);
+
+  const handleRerun = async () => {
+    try {
+      setIsRerunning(true);
+      toast.info("Starting evaluation...");
+      
+      await rerunEvaluation.mutateAsync({ id: companyId });
+      
+      toast.success("Evaluation completed successfully!");
+      await refetch();
+    } catch (err) {
+      console.error("Rerun failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to rerun evaluation";
+      toast.error(errorMessage);
+    } finally {
+      setIsRerunning(false);
+    }
+  };
 
   if (isLoading) {
     return (
       <main className="container mx-auto px-4 py-12">
-        <div className="text-center py-16 text-ndmo-gray-medium">
+        <div className="text-ndmo-gray-medium py-16 text-center">
           Loading report...
         </div>
       </main>
@@ -86,11 +124,9 @@ function RouteComponent() {
   if (error || !data) {
     return (
       <main className="container mx-auto px-4 py-12">
-        <div className="text-center py-16">
+        <div className="py-16 text-center">
           <p className="text-ndmo-red mb-4">Failed to load submission</p>
-          <p className="text-sm text-ndmo-gray-medium mb-4">
-            {error?.message}
-          </p>
+          <p className="text-ndmo-gray-medium mb-4 text-sm">{error?.message}</p>
           <Link
             to="/admin/ndi"
             className="text-ndmo-blue-medium hover:underline"
@@ -136,9 +172,7 @@ function RouteComponent() {
   });
 
   // Calculate overall score
-  const allDecisions = Object.values(evalsByDomain).flatMap(
-    (e) => e.decisions,
-  );
+  const allDecisions = Object.values(evalsByDomain).flatMap((e) => e.decisions);
   const overallScore =
     allDecisions.length > 0
       ? allDecisions.reduce((sum, d) => sum + getScore(d.decision), 0) /
@@ -165,7 +199,7 @@ function RouteComponent() {
 
   return (
     <main className="container mx-auto px-4 py-12">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -173,7 +207,7 @@ function RouteComponent() {
             className="text-ndmo-blue-medium hover:text-ndmo-blue-dark mb-4 inline-flex items-center gap-2"
           >
             <svg
-              className="w-4 h-4"
+              className="h-4 w-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -190,15 +224,15 @@ function RouteComponent() {
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-ndmo-blue-dark mb-2">
+              <h1 className="text-ndmo-blue-dark mb-2 text-4xl font-bold">
                 {submission.companyName}
               </h1>
               <p className="text-ndmo-gray-medium">NDI Assessment Report</p>
             </div>
             {report?.reportPath && (
-              <button className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
+              <button className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark flex items-center gap-2 rounded-lg px-6 py-3 font-semibold text-white transition-colors">
                 <svg
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -217,13 +251,12 @@ function RouteComponent() {
         </div>
 
         {/* Summary Card */}
-        <div className="bg-gradient-to-br from-ndmo-blue-medium to-ndmo-blue-dark rounded-2xl p-8 mb-8 text-white shadow-lg">
+        <div className="from-ndmo-blue-medium to-ndmo-blue-dark mb-8 rounded-2xl bg-gradient-to-br p-8 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Submission Details</h2>
+              <h2 className="mb-2 text-2xl font-bold">Submission Details</h2>
               <p className="text-ndmo-blue-pale">
-                Submitted:{" "}
-                {new Date(submission.createdAt).toLocaleDateString()}
+                Submitted: {new Date(submission.createdAt).toLocaleDateString()}
               </p>
               <p className="text-ndmo-blue-pale">
                 Files uploaded: {files.length}
@@ -233,9 +266,9 @@ function RouteComponent() {
                 {NDI_DOMAINS.length}
               </p>
             </div>
-            <div className="text-center space-y-2">
+            <div className="space-y-2 text-center">
               <span
-                className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide text-white ${statusColors[submission.status] ?? statusColors.pending}`}
+                className={`rounded-full px-4 py-2 text-sm font-bold tracking-wide text-white uppercase ${statusColors[submission.status] ?? statusColors.pending}`}
               >
                 {submission.status}
               </span>
@@ -244,7 +277,7 @@ function RouteComponent() {
                   <div className="text-4xl font-bold">
                     {Math.round(overallScore * 100)}%
                   </div>
-                  <div className="text-sm text-ndmo-blue-pale">
+                  <div className="text-ndmo-blue-pale text-sm">
                     Overall Score
                   </div>
                 </div>
@@ -255,34 +288,95 @@ function RouteComponent() {
 
         {/* Notice when evaluation failed or pending */}
         {!hasEvaluations && (
-          <div className={`rounded-xl p-6 mb-6 border ${submission.status === "failed" ? "bg-red-50 border-red-200" : "bg-yellow-50 border-yellow-200"}`}>
+          <div
+            className={`mb-6 rounded-xl border p-6 ${submission.status === "failed" ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}`}
+          >
             <div className="flex items-start gap-3">
-              <svg className={`w-6 h-6 flex-shrink-0 mt-0.5 ${submission.status === "failed" ? "text-ndmo-red" : "text-ndmo-yellow"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className={`mt-0.5 h-6 w-6 flex-shrink-0 ${submission.status === "failed" ? "text-ndmo-red" : "text-ndmo-yellow"}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
-              <div>
-                <h3 className={`font-semibold ${submission.status === "failed" ? "text-red-800" : "text-yellow-800"}`}>
+              <div className="flex-1">
+                <h3
+                  className={`font-semibold ${submission.status === "failed" ? "text-red-800" : "text-yellow-800"}`}
+                >
                   {submission.status === "failed"
                     ? "AI Evaluation Failed"
                     : submission.status === "processing"
                       ? "Evaluation In Progress"
                       : "Evaluation Pending"}
                 </h3>
-                <p className={`text-sm mt-1 ${submission.status === "failed" ? "text-red-700" : "text-yellow-700"}`}>
+                <p
+                  className={`mt-1 text-sm ${submission.status === "failed" ? "text-red-700" : "text-yellow-700"}`}
+                >
                   {submission.status === "failed"
                     ? "The AI service could not evaluate this submission. Your uploaded files have been saved. Please try submitting again when the AI service is available."
                     : submission.status === "processing"
                       ? "The AI service is currently evaluating this submission. Please check back shortly."
                       : "This submission is waiting to be evaluated."}
                 </p>
+                
+                {/* Rerun Button - only show for failed submissions */}
+                {submission.status === "failed" && (
+                  <button
+                    onClick={handleRerun}
+                    disabled={isRerunning}
+                    className="mt-4 bg-ndmo-blue-medium hover:bg-ndmo-blue-dark disabled:bg-ndmo-gray-medium flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+                  >
+                    {isRerunning ? (
+                      <>
+                        <svg
+                          className="h-4 w-4 animate-spin"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Rerunning Evaluation...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Rerun Evaluation
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         )}
 
         {/* Domain Evaluations */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border mb-6">
-          <h2 className="text-2xl font-bold text-ndmo-blue-dark mb-6">
+        <div className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="text-ndmo-blue-dark mb-6 text-2xl font-bold">
             {hasEvaluations ? "Domain Evaluations" : "Submitted Domains"}
           </h2>
 
@@ -302,15 +396,15 @@ function RouteComponent() {
           </div>
 
           {domainsWithoutFiles.length > 0 && (
-            <div className="mt-6 pt-6 border-t">
-              <h3 className="font-semibold text-ndmo-gray-dark mb-3">
+            <div className="mt-6 border-t pt-6">
+              <h3 className="text-ndmo-gray-dark mb-3 font-semibold">
                 Domains Not Submitted
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                 {domainsWithoutFiles.map((domain) => (
                   <div
                     key={domain.id}
-                    className="text-sm text-ndmo-gray-medium bg-ndmo-gray-light/50 rounded px-3 py-2"
+                    className="text-ndmo-gray-medium bg-ndmo-gray-light/50 rounded px-3 py-2 text-sm"
                   >
                     {domain.order}. {domain.name}
                   </div>
@@ -361,19 +455,19 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
   const warnCount = decisions.length - passCount - failCount;
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-lg border">
       {/* Domain Header */}
       <div className="p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-ndmo-blue-medium text-white flex items-center justify-center font-bold text-sm">
+            <div className="bg-ndmo-blue-medium flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white">
               {domain.order}
             </div>
             <div>
-              <h3 className="font-semibold text-ndmo-blue-dark">
+              <h3 className="text-ndmo-blue-dark font-semibold">
                 {domain.name}
               </h3>
-              <span className="text-xs text-ndmo-gray-medium">
+              <span className="text-ndmo-gray-medium text-xs">
                 {files.length} file{files.length !== 1 ? "s" : ""}
                 {hasEval && ` · ${decisions.length} controls evaluated`}
               </span>
@@ -384,8 +478,8 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
             {hasEval && (
               <>
                 {/* Score */}
-                <div className="text-right mr-2">
-                  <div className="text-lg font-bold text-ndmo-blue-dark">
+                <div className="mr-2 text-right">
+                  <div className="text-ndmo-blue-dark text-lg font-bold">
                     {Math.round(domainScore * 100)}%
                   </div>
                   <div className="flex gap-1 text-xs">
@@ -393,9 +487,7 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
                       <span className="text-ndmo-green">{passCount} pass</span>
                     )}
                     {warnCount > 0 && (
-                      <span className="text-ndmo-yellow">
-                        {warnCount} fair
-                      </span>
+                      <span className="text-ndmo-yellow">{warnCount} fair</span>
                     )}
                     {failCount > 0 && (
                       <span className="text-ndmo-red">{failCount} fail</span>
@@ -406,7 +498,7 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
                 {/* More Details Button */}
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="px-4 py-2 text-sm font-medium rounded-lg border border-ndmo-blue-medium text-ndmo-blue-medium hover:bg-ndmo-blue-pale transition-colors"
+                  className="border-ndmo-blue-medium text-ndmo-blue-medium hover:bg-ndmo-blue-pale rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
                 >
                   {expanded ? "Hide Details" : "More Details"}
                 </button>
@@ -418,17 +510,17 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
 
       {/* Expanded Details */}
       {expanded && hasEval && (
-        <div className="border-t bg-ndmo-gray-light/30 p-5">
+        <div className="bg-ndmo-gray-light/30 border-t p-5">
           {/* AI Summary */}
           {summaries.length > 0 && (
             <div className="mb-5">
-              <h4 className="text-sm font-semibold text-ndmo-blue-dark mb-2">
+              <h4 className="text-ndmo-blue-dark mb-2 text-sm font-semibold">
                 AI Assessment Summary
               </h4>
               {summaries.map((summary, i) => (
                 <p
                   key={i}
-                  className="text-sm text-ndmo-gray-dark leading-relaxed mb-2"
+                  className="text-ndmo-gray-dark mb-2 text-sm leading-relaxed"
                 >
                   {summary}
                 </p>
@@ -437,23 +529,20 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
           )}
 
           {/* Control Decisions Checklist */}
-          <h4 className="text-sm font-semibold text-ndmo-blue-dark mb-3">
+          <h4 className="text-ndmo-blue-dark mb-3 text-sm font-semibold">
             Control Evaluations
           </h4>
           <div className="space-y-2">
             {decisions.map((decision, i) => {
               const icon = getDecisionIcon(decision.decision);
               return (
-                <div
-                  key={i}
-                  className="bg-white rounded-lg p-4 border"
-                >
+                <div key={i} className="rounded-lg border bg-white p-4">
                   <div className="flex items-start gap-3">
                     {/* Status Icon */}
-                    <div className="flex-shrink-0 mt-0.5">
+                    <div className="mt-0.5 flex-shrink-0">
                       {icon === "pass" && (
                         <svg
-                          className="w-5 h-5 text-ndmo-green"
+                          className="text-ndmo-green h-5 w-5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -468,7 +557,7 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
                       )}
                       {icon === "warn" && (
                         <svg
-                          className="w-5 h-5 text-ndmo-yellow"
+                          className="text-ndmo-yellow h-5 w-5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -483,7 +572,7 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
                       )}
                       {icon === "fail" && (
                         <svg
-                          className="w-5 h-5 text-ndmo-red"
+                          className="text-ndmo-red h-5 w-5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -499,18 +588,18 @@ function DomainCard({ domain, files, evaluation }: DomainCardProps) {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-sm font-semibold text-ndmo-blue-dark">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-ndmo-blue-dark font-mono text-sm font-semibold">
                           {decision.control_id}
                         </span>
                         <span
-                          className={`px-2 py-0.5 rounded text-xs font-semibold ${getDecisionColor(decision.decision)}`}
+                          className={`rounded px-2 py-0.5 text-xs font-semibold ${getDecisionColor(decision.decision)}`}
                         >
                           {decision.decision}
                         </span>
                       </div>
-                      <p className="text-sm text-ndmo-gray-dark leading-relaxed">
+                      <p className="text-ndmo-gray-dark text-sm leading-relaxed">
                         {decision.rationale}
                       </p>
                     </div>

@@ -18,6 +18,11 @@ type RouterInputs = inferRouterInputs<AppRouter>;
  */
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
+export type { RouterInputs, RouterOutputs };
+
 export { type AppRouter, appRouter } from "./root";
 export { createTRPCContext } from "./trpc";
-export type { RouterInputs, RouterOutputs };
+
+// Export WorkOS utilities and permissions
+export { workos, SUBMISSION_PERMISSIONS } from "./lib/workos";
+export type { SubmissionPermission } from "./lib/workos";

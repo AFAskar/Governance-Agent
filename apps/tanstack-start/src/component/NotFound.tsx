@@ -1,26 +1,28 @@
 import { Link, useLocation } from "@tanstack/react-router";
 
 export function NotFound() {
-    const location = useLocation();
-    console.log("NotFound triggered for path:", location.pathname);
+  const location = useLocation();
+  console.log("NotFound triggered for path:", location.pathname);
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
-            <h1 className="text-9xl font-extrabold tracking-widest text-primary">404</h1>
-            <div className="bg-primary px-2 text-sm rounded rotate-12 absolute text-primary-foreground">
-                Page Not Found
-            </div>
-            <div className="mt-8 text-center">
-                <div className="text-xl font-medium mb-4">
-                    Oops! The page you asked for doesn't exist.
-                </div>
-                <Link
-                    to="/"
-                    className="px-6 py-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200"
-                >
-                    Go Home
-                </Link>
-            </div>
+  return (
+    <div className="bg-background text-foreground flex min-h-screen flex-col items-center justify-center p-4">
+      <h1 className="text-primary text-9xl font-extrabold tracking-widest">
+        404
+      </h1>
+      <div className="bg-primary text-primary-foreground absolute rotate-12 rounded px-2 text-sm">
+        Page Not Found
+      </div>
+      <div className="mt-8 text-center">
+        <div className="mb-4 text-xl font-medium">
+          Oops! The page you asked for doesn't exist.
         </div>
-    );
+        <Link
+          to="/"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-6 py-3 transition-colors duration-200"
+        >
+          Go Home
+        </Link>
+      </div>
+    </div>
+  );
 }

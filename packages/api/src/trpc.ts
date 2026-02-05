@@ -10,7 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
-import type { UserInfo, NoUserInfo } from "@governance/auth";
+import type { NoUserInfo, UserInfo } from "@governance/auth";
 import { db } from "@governance/db/client";
 
 /**
@@ -26,13 +26,30 @@ import { db } from "@governance/db/client";
  * @see https://trpc.io/docs/server/context
  */
 
+/**
+ * Extract permissions from the user session
+ * Permissions come from the access token JWT in the session
+ */
+function getPermissionsFromSession(session: UserInfo | NoUserInfo): string[] {
+  if (!session.user) {
+    return [];
+  }
+
+  // WorkOS includes permissions in the access token
+  // They are available in the session.permissions field or decoded from the JWT
+  return session.permissions ?? [];
+}
+
 export const createTRPCContext = async (opts: {
   headers: Headers;
   auth: UserInfo | NoUserInfo;
 }) => {
   const session = opts.auth;
+  const permissions = getPermissionsFromSession(session);
+
   return {
     session,
+    permissions,
     db,
   };
 };
@@ -119,6 +136,40 @@ export const protectedProcedure = t.procedure
       ctx: {
         // infers the `session` as non-nullable
         session: ctx.session as UserInfo,
+        permissions: ctx.permissions,
       },
     });
   });
+
+/**
+ * Permission-based procedure
+ *
+ * Use this to create procedures that require specific permissions.
+ * The permission check is based on the user's role permissions from WorkOS.
+ *
+ * @example
+ * ```ts
+ * const myProcedure = createPermissionProcedure(["submissions:read"])
+ *   .query(async ({ ctx }) => {
+ *     // User has submissions:read permission
+ *   });
+ * ```
+ */
+export const createPermissionProcedure = (requiredPermissions: string[]) => {
+  return protectedProcedure.use(({ ctx, next }) => {
+    const hasPermission = requiredPermissions.every((permission) =>
+      ctx.permissions.includes(permission),
+    );
+
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Missing required permissions: ${requiredPermissions.join(", ")}`,
+      });
+    }
+
+    return next({
+      ctx,
+    });
+  });
+};
