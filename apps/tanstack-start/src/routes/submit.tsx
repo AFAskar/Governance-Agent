@@ -17,6 +17,7 @@ import { toast } from "@governance/ui/toast";
 
 import { NDI_DOMAINS } from "~/lib/ndi-domains";
 import { useTRPC } from "~/lib/trpc";
+import { hasPermission, SUBMISSION_PERMISSIONS } from "~/lib/permissions";
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -36,9 +37,19 @@ const fileToBase64 = (file: File): Promise<string> => {
 export const Route = createFileRoute("/submit")({
   beforeLoad: async ({ location }) => {
     const auth = await getAuth();
+    
+    // Check if user is authenticated
     if (!auth.user) {
       const signInUrl = await getSignInUrl();
       throw redirect({ href: signInUrl });
+    }
+    
+    // Check if user has write permission
+    if (!hasPermission(auth.permissions, SUBMISSION_PERMISSIONS.WRITE)) {
+      throw redirect({ 
+        to: "/",
+        search: { error: "insufficient_permissions" }
+      });
     }
   },
   component: RouteComponent,

@@ -5,8 +5,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { getSignInUrl } from "@workos/authkit-tanstack-react-start";
 import { useAuth } from "@workos/authkit-tanstack-react-start/client";
 
+import { hasPermission, SUBMISSION_PERMISSIONS } from "~/lib/permissions";
+
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, permissions, signOut } = useAuth();
+  const canViewAdmin = hasPermission(permissions, SUBMISSION_PERMISSIONS.READ);
 
   return (
     <header className="bg-background sticky top-0 z-50 w-full border-b shadow-sm">
@@ -23,12 +26,14 @@ export function Header() {
               <span className="text-ndmo-gray-medium text-sm">
                 {user.email}
               </span>
-              <Link
-                to="/admin"
-                className="text-ndmo-blue-medium hover:text-ndmo-blue-dark text-sm font-medium"
-              >
-                Admin Dashboard
-              </Link>
+              {canViewAdmin && (
+                <Link
+                  to="/admin"
+                  className="text-ndmo-blue-medium hover:text-ndmo-blue-dark text-sm font-medium"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
               <button
                 onClick={() => signOut()}
                 className="bg-ndmo-blue-medium text-primary hover:bg-ndmo-blue-dark rounded-lg px-4 py-2 text-sm font-medium transition-colors"
