@@ -32,10 +32,10 @@ class SetupFrameworkResponse(BaseModel):
 
 
 class SubmitEvaluationResponse(BaseModel):
-    """Response after submitting an evaluation (15 files + framework)."""
+    """Response after submitting an evaluation (files + framework)."""
 
     evaluation_id: str = Field(..., description="Unique evaluation run ID")
-    mimic_json: dict = Field(..., description="DB-mimic: framework_name -> field_1..field_15 -> comma-separated control IDs")
+    mimic_json: dict = Field(..., description="framework_name -> field_N -> comma-separated control IDs assigned to that file")
     report_path: str = Field("", description="Path to the generated report PDF")
     file_evaluations: list[dict] = Field(default_factory=list, description="Per-file assessment results")
 
