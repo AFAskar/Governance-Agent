@@ -174,7 +174,7 @@ Make sure your `.env` file contains:
 
 ```env
 # WorkOS Configuration
-WORKOS_CLIENT_ID=client_01KGHB6BFE17CZKTXGCH52J72X
+WORKOS_CLIENT_ID=client_...
 WORKOS_API_KEY=sk_test_...
 WORKOS_REDIRECT_URI=http://localhost:5001/api/auth/callback
 WORKOS_COOKIE_PASSWORD=your-secure-cookie-password-here
