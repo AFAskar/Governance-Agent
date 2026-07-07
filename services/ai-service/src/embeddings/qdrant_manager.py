@@ -4,6 +4,7 @@ Handles Qdrant vector database operations for storing and retrieving document ch
 """
 
 import logging
+import os
 
 from qdrant_client import QdrantClient
 
@@ -30,31 +31,34 @@ def initialize_qdrant(
 ) -> QdrantClient:
     """
     Initialize Qdrant client and create collection if it doesn't exist.
-    
+
+    Resolution order: explicit ``url`` > explicit ``path`` > ``QDRANT_URL``
+    env var (server mode, e.g. the docker-compose Qdrant service) > embedded
+    local storage under config/vector_db.
+
     Args:
         collection_name: Name of the collection
         vector_size: Size of the embedding vectors
         path: Local path for Qdrant (default: config/vector_db)
         url: Qdrant server URL (for remote/cloud)
-        
+
     Returns:
         QdrantClient instance
     """
-    # Default to local path if neither path nor url provided
     if path is None and url is None:
-        # Get project root (services/ai-service/)
+        url = os.getenv("QDRANT_URL", "").strip() or None
+
+    if path is None and url is None:
+        # Embedded local mode under the project root (services/ai-service/)
         project_root = Path(__file__).parent.parent.parent
         path = str(project_root / "config" / "vector_db")
         Path(path).mkdir(parents=True, exist_ok=True)
-    
-    # Initialize client
-    # For local mode, use path (this creates a QdrantLocal client)
-    # For remote mode, use url (this creates a QdrantRemote client)
+
     if url:
-        # Remote/server mode
-        client = QdrantClient(url=url, prefer_grpc=False)  # Disable gRPC for compatibility
+        # Remote/server mode; gRPC disabled for compatibility
+        api_key = os.getenv("QDRANT_API_KEY", "").strip() or None
+        client = QdrantClient(url=url, api_key=api_key, prefer_grpc=False)
     else:
-        # Local mode - use path, this is the correct way for local Qdrant
         client = QdrantClient(path=path)
     
     # Create collection if it doesn't exist
