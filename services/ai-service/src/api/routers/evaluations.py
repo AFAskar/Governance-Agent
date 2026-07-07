@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from starlette.concurrency import run_in_threadpool
 
 from src.api.models import SubmitEvaluationResponse
 from src.services import EvaluationService
@@ -92,8 +93,11 @@ async def submit_evaluation(
             )
         file_tuples.append((_sanitize_filename(u.filename), body))
 
+    # The agent run is CPU/IO-heavy and can take minutes; run it in the
+    # threadpool so the event loop keeps serving health checks and other requests.
     service = EvaluationService()
-    result = service.submit_evaluation(
+    result = await run_in_threadpool(
+        service.submit_evaluation,
         framework_name=framework_name,
         files=file_tuples,
         domain_ids=domain_ids_list if domain_ids_list else None,

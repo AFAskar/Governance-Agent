@@ -3,6 +3,8 @@
 import logging
 import os
 import sys
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
@@ -39,12 +41,35 @@ def _ensure_data_dirs():
     (root / "data" / "reports").mkdir(parents=True, exist_ok=True)
 
 
+def _warm_embedder() -> None:
+    """Load the embedding model so the first evaluation doesn't pay the cost."""
+    try:
+        from src.rag._shared import get_shared_embedder
+
+        get_shared_embedder()
+        logger.info("Embedding model warmed up")
+    except Exception as e:
+        # Non-fatal: retrieval will retry lazily on first use.
+        logger.warning("Embedder warmup failed: %s", e)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    _setup_logging()
+    _ensure_data_dirs()
+    warn_if_unprotected()
+    threading.Thread(target=_warm_embedder, name="embedder-warmup", daemon=True).start()
+    logger.info("Governance Agent API started")
+    yield
+
+
 app = FastAPI(
     title="Governance Agent API",
     description="Compliance Framework Extraction & Evaluation",
     version="0.1.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
+    lifespan=lifespan,
 )
 
 _cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
@@ -70,14 +95,6 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(health.router)
 app.include_router(frameworks.router, dependencies=[Depends(require_api_key)])
 app.include_router(evaluations.router, dependencies=[Depends(require_api_key)])
-
-
-@app.on_event("startup")
-def on_startup():
-    _setup_logging()
-    _ensure_data_dirs()
-    warn_if_unprotected()
-    logger.info("Governance Agent API started")
 
 
 @app.exception_handler(ExtractionError)

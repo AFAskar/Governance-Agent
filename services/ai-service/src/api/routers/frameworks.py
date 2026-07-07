@@ -4,6 +4,7 @@ import os
 import re
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from starlette.concurrency import run_in_threadpool
 
 from src.api.models import ControlSummary, SetupFrameworkResponse
 from src.services import FrameworkService
@@ -69,8 +70,11 @@ async def setup_framework(
             )
         pdf_sections.append((name.strip(), body))
 
+    # Extraction fans out one LLM call per PDF; keep it off the event loop.
     service = FrameworkService()
-    result = service.setup_framework(framework_name=framework_name, pdf_sections=pdf_sections)
+    result = await run_in_threadpool(
+        service.setup_framework, framework_name=framework_name, pdf_sections=pdf_sections
+    )
 
     return SetupFrameworkResponse(
         framework_name=result["framework_name"],
