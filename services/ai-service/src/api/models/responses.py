@@ -1,7 +1,6 @@
 """Response schemas for API endpoints."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -11,7 +10,7 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error code or type")
     message: str = Field(..., description="Human-readable message")
-    detail: Optional[str] = Field(None, description="Additional detail (e.g. framework_name)")
+    detail: str | None = Field(None, description="Additional detail (e.g. framework_name)")
 
 
 class ControlSummary(BaseModel):
@@ -43,7 +42,7 @@ class SubmitEvaluationResponse(BaseModel):
 class ExtractionError(Exception):
     """Raised when framework extraction fails (e.g. LLM API error)."""
 
-    def __init__(self, message: str, framework_name: Optional[str] = None):
+    def __init__(self, message: str, framework_name: str | None = None):
         super().__init__(message)
         self.message = message
         self.framework_name = framework_name
