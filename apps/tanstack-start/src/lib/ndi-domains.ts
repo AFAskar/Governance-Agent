@@ -1,6 +1,9 @@
 /**
- * NDI Domains Configuration
- * 12 domains for Nationality Data Index assessment
+ * NDI domains configuration — single source of truth for the assessment domains.
+ *
+ * Domain IDs double as framework section names on the AI service: each ID must
+ * match a section JSON at config/frameworks/NDI/{id}.json, which the service
+ * uses to resolve the control IDs a file is evaluated against.
  */
 
 export const NDI_DOMAINS = [
