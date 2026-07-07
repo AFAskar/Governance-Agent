@@ -67,8 +67,11 @@ COPY --from=builder /app/src /app/src
 COPY --from=builder /app/run.py /app/run.py
 COPY --from=builder /app/main.py /app/main.py
 
-# Create non-root user and set ownership
+# Create non-root user and set ownership.
+# data/ and config/ are created here so named volumes mounted on them
+# inherit appuser ownership instead of defaulting to root.
 RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/data /app/config && \
     chown -R appuser:appuser /app && \
     mkdir -p /home/appuser/.cache && \
     cp -r /root/.cache/huggingface /home/appuser/.cache/ && \

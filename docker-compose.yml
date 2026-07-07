@@ -9,6 +9,11 @@ services:
       - .env
     environment:
       - PYTHONPATH=/app/src
+    volumes:
+      # Uploaded files, generated reports, and extracted framework JSONs
+      # must survive container rebuilds.
+      - ai_data:/app/data
+      - ai_config:/app/config
     depends_on:
       vector_db:
         condition: service_started
@@ -36,7 +41,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - AI_HOST=ai_service
+      - AI_SERVICE_URL=http://ai_service:8000
       - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@application_db:5432/${POSTGRES_DB:-app_db}
     depends_on:
       ai_service:
@@ -89,4 +94,8 @@ volumes:
   db_data:
     driver: local
   qdrant_data:
+    driver: local
+  ai_data:
+    driver: local
+  ai_config:
     driver: local
