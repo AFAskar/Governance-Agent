@@ -5,13 +5,14 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.api.models import ExtractionError
 from src.api.routers import evaluations, frameworks, health
+from src.api.security import require_api_key, warn_if_unprotected
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +68,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(health.router)
-app.include_router(frameworks.router)
-app.include_router(evaluations.router)
+app.include_router(frameworks.router, dependencies=[Depends(require_api_key)])
+app.include_router(evaluations.router, dependencies=[Depends(require_api_key)])
 
 
 @app.on_event("startup")
 def on_startup():
     _setup_logging()
     _ensure_data_dirs()
+    warn_if_unprotected()
     logger.info("Governance Agent API started")
 
 
