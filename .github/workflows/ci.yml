@@ -4,15 +4,13 @@ on:
   pull_request:
     branches: ["*"]
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
   merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# You can leverage Vercel Remote Caching with Turbo to speed up your builds
-# @link https://turborepo.com/docs/core-concepts/remote-caching#remote-caching-on-vercel-builds
 env:
   FORCE_COLOR: 3
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -29,7 +27,7 @@ jobs:
 
       - name: Copy env
         shell: bash
-        run: cp .env.example .env
+        run: cp example.env .env
 
       - name: Lint
         run: pnpm lint && pnpm lint:ws
@@ -55,3 +53,33 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
+
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ai-service
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install CPU PyTorch (Linux CI)
+        run: |
+          uv pip install --system torch==2.5.1+cpu \
+            --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format
+        run: uv run ruff format --check .
+
+      - name: Pytest
+        run: uv run pytest -q
