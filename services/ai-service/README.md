@@ -27,15 +27,15 @@ config/
 └── vector_db/             # Qdrant vector database storage
 
 data/
-└── outputs/
-    └── evaluations/        # Evaluation reports (JSON files)
+├── evaluations/            # Uploaded files per evaluation run
+└── reports/                # Generated PDF reports ({evaluation_id}.pdf)
 ```
 
 **What gets saved where:**
 - **Framework Data**: `config/frameworks/{framework_name}/`
   - One JSON per section (e.g. `section_name.json`) — extracted compliance controls
-- **Vector Database**: `config/vector_db/` (Qdrant local storage)
-- **Evaluation Reports**: `data/outputs/evaluations/` (when using evaluator)
+- **Vector Database**: Qdrant server when `QDRANT_URL` is set; otherwise embedded storage under `config/vector_db/`
+- **Evaluation Reports**: `data/reports/{evaluation_id}.pdf`
 
 ## Quick Start
 
@@ -64,10 +64,14 @@ python run.py
 
 - **Docs**: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
 - **Health**: `GET /health`
-- **Setup framework**: `POST /api/v1/frameworks/setup`
-  - Form fields: `framework_name` (string), `section_names` (list of strings), `files` (list of PDFs). Same order for section_names and files. Each PDF is saved as `config/frameworks/{framework_name}/{section_name}.json`.
+- **Setup framework**: `POST /api/v1/frameworks/setup` (requires `Authorization` header when `AI_SERVICE_KEY` is set)
+  - Form fields: `framework_name`, comma-separated `section_names`, `files` (PDFs, same order)
 - **Submit evaluation**: `POST /api/v1/evaluations/submit`
-  - Form fields: `framework_name` (string), `files` (1+ uploads: PDF, DOCX, PPTX, CSV, XLSX), `control_ids_1`, `control_ids_2`, ... (one per file; each = comma-separated IDs). Returns mimic JSON, `evaluation_id`, `report_path`, `file_evaluations`. Requires `GROQ_API_KEY` in env.
+  - Form fields: `framework_name`, `files` (PDF, DOCX, PPTX, CSV, XLSX), `domain_ids` (comma-separated, one domain ID per file — must match a section name under `config/frameworks/{framework}/`, e.g. `1_Data_Governance`)
+  - Returns `evaluation_id`, `mimic_json`, `report_path`, `file_evaluations`
+- **Download report**: `GET /api/v1/evaluations/{evaluation_id}/report` → PDF file
+
+Protected routes require the shared `AI_SERVICE_KEY` in the `Authorization` header (raw key or `Bearer <key>`). When the key is unset, endpoints are open for local development only.
 
 ### Other (from `src`)
 
@@ -96,8 +100,14 @@ Run these in your terminal; dev dependencies stay in a separate group (e.g. `[pr
 
 ## Environment
 
-- **GROQ_API_KEY**: Required for the evaluation agent (`POST /api/v1/evaluations/submit`). Set in `.env` or environment.
-- **GROQ_MODEL**: Optional; default `llama-3.3-70b-versatile`.
+| Variable | Purpose |
+|----------|---------|
+| `GROQ_API_KEY` | Evaluation agent LLM (required for `/evaluations/submit`) |
+| `GROQ_MODEL` | Optional; default `llama-3.3-70b-versatile` |
+| `OPENROUTER_API_KEY` | Framework control extraction |
+| `AI_SERVICE_KEY` | Shared secret for protected API routes |
+| `QDRANT_URL` | Qdrant server URL (e.g. `http://vector_db:6333` in Docker) |
+| `HF_TOKEN` / `HF_HUB_OFFLINE` | Embedding model access |
 
 ## Notes
 

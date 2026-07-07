@@ -48,7 +48,18 @@ dist/
 # tanstack
 .tanstack
 
-# generated SDK
+# pnpm store (local)
+.pnpm-store/
+
+# generated reports and local artifacts
+*.pdf
+!test_samples/**/*.pdf
+governance_presentation.pptx
+
+# notebooks
+*.ipynb
+
+# generated SDK (legacy path)
 packages/ai/src/
 
 # ========= python =========

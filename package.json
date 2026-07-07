@@ -1,6 +1,7 @@
 {
   "name": "governance-agent",
   "private": true,
+  "license": "MIT",
   "engines": {
     "node": "^22.21.0",
     "pnpm": "^10.19.0"
