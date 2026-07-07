@@ -170,6 +170,43 @@ export const submissionRouter = {
     },
   ),
 
+  downloadReport: createPermissionProcedure([SUBMISSION_PERMISSIONS.READ])
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [report] = await ctx.db
+        .select()
+        .from(schema.EvaluationReport)
+        .where(eq(schema.EvaluationReport.submissionId, input.id))
+        .limit(1);
+
+      if (!report?.aiServiceReportId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No evaluation report available for this submission",
+        });
+      }
+
+      const baseUrl = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
+      const apiKey = process.env.AI_SERVICE_KEY;
+      const response = await fetch(
+        `${baseUrl}/api/v1/evaluations/${report.aiServiceReportId}/report`,
+        { headers: apiKey ? { Authorization: apiKey } : undefined },
+      );
+
+      if (!response.ok) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Report PDF unavailable (AI service returned ${response.status})`,
+        });
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+      return {
+        fileName: `evaluation_report_${report.aiServiceReportId}.pdf`,
+        base64: buffer.toString("base64"),
+      };
+    }),
+
   getById: createPermissionProcedure([SUBMISSION_PERMISSIONS.READ])
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

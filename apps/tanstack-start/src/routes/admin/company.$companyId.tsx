@@ -90,8 +90,32 @@ function RouteComponent() {
   const rerunEvaluation = useMutation(
     trpc.submission.rerunEvaluation.mutationOptions(),
   );
+  const downloadReport = useMutation(
+    trpc.submission.downloadReport.mutationOptions(),
+  );
 
   const [isRerunning, setIsRerunning] = useState(false);
+
+  const handleDownloadReport = async () => {
+    try {
+      const { fileName, base64 } = await downloadReport.mutateAsync({
+        id: companyId,
+      });
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const url = URL.createObjectURL(
+        new Blob([bytes], { type: "application/pdf" }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to download report";
+      toast.error(message);
+    }
+  };
 
   const handleRerun = async () => {
     try {
@@ -230,7 +254,11 @@ function RouteComponent() {
               <p className="text-ndmo-gray-medium">NDI Assessment Report</p>
             </div>
             {report?.reportPath && (
-              <button className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark flex items-center gap-2 rounded-lg px-6 py-3 font-semibold text-white transition-colors">
+              <button
+                onClick={handleDownloadReport}
+                disabled={downloadReport.isPending}
+                className="bg-ndmo-blue-medium hover:bg-ndmo-blue-dark flex items-center gap-2 rounded-lg px-6 py-3 font-semibold text-white transition-colors disabled:opacity-60"
+              >
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -244,7 +272,7 @@ function RouteComponent() {
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                Download PDF
+                {downloadReport.isPending ? "Preparing..." : "Download PDF"}
               </button>
             )}
           </div>

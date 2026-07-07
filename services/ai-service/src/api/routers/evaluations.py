@@ -1,19 +1,23 @@
 """
-Evaluation endpoints: submit files + framework, get mimic JSON + report PDF path.
+Evaluation endpoints: submit files + framework, download the report PDF.
 Supports domain_ids parameter to specify which domain each file belongs to.
 """
 
 import os
 import re
+import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from src.api.models import SubmitEvaluationResponse
 from src.services import EvaluationService
 
 router = APIRouter(prefix="/api/v1/evaluations", tags=["evaluations"])
+
+_REPORTS_DIR = Path(__file__).resolve().parents[3] / "data" / "reports"
 
 _MAX_FILES = 120  # 12 domains × 10 files per domain
 _MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50")) * 1024 * 1024
@@ -108,4 +112,23 @@ async def submit_evaluation(
         mimic_json=result["mimic_json"],
         report_path=result.get("report_path", ""),
         file_evaluations=result.get("file_evaluations", []),
+    )
+
+
+@router.get("/{evaluation_id}/report")
+async def get_evaluation_report(evaluation_id: str) -> FileResponse:
+    """Download the generated report PDF for an evaluation."""
+    try:
+        uuid.UUID(evaluation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="evaluation_id must be a valid UUID")
+
+    path = _REPORTS_DIR / f"{evaluation_id}.pdf"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    return FileResponse(
+        path,
+        media_type="application/pdf",
+        filename=f"evaluation_report_{evaluation_id}.pdf",
     )
