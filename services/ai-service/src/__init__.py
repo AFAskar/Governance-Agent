@@ -19,28 +19,27 @@ from .core import (
 #     initialize_qdrant, add_documents, search_similar,
 #     HaystackQdrantRetriever, create_retrieval_pipeline
 # )
-
 # Processing exports
 from .processing import (
-    extract_text_from_pdf,
     chunk_text,
     chunk_text_by_sentences,
-)
-
-# Utils exports
-from .utils import (
-    save_extraction_json,
-    get_input_paths,
-    list_framework_jsons,
-    get_vector_db_pdf_paths,
+    extract_text_from_pdf,
 )
 
 # RAG exports (index JSON + PDF, retrieve by control ID; agent-tool friendly)
 from .rag import (
-    index_framework,
-    retrieve_control_details,
     RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA,
     get_shared_embedder,
+    index_framework,
+    retrieve_control_details,
+)
+
+# Utils exports
+from .utils import (
+    get_input_paths,
+    get_vector_db_pdf_paths,
+    list_framework_jsons,
+    save_extraction_json,
 )
 
 __all__ = [

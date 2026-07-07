@@ -359,7 +359,7 @@ Use `RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA` when registering as an agent tool.
 | Variable | Used by | Purpose |
 |----------|---------|---------|
 | `OPENROUTER_API_KEY` | `framework_extraction.py` | LLM extraction (OpenRouter) |
-| `OPENAI_API_KEY` | `evaluator.py` | Applicant evaluation |
+| `OPENROUTER_API_KEY` | `framework_extraction.py`, `evaluator.py` | LLM extraction and legacy evaluation |
 | `HF_TOKEN` or `HUGGINGFACE_TOKEN` | `gemma_embedder.py` | Gated models (when not offline) |
 | `HF_HUB_OFFLINE` | Set in `gemma_embedder.py` | `"1"` cache-only, `"0"` hub access |
 

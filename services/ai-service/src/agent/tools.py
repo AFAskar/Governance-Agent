@@ -59,7 +59,9 @@ def retrieve_control_details_multi(
             out = rag_retrieve_control_details(cid, framework_name, top_k_pdf=top_k_pdf)
             controls.append({"control_id": cid, **out})
         except Exception as e:
-            controls.append({"control_id": cid, "error": str(e), "json_cards": [], "pdf_chunks": []})
+            controls.append(
+                {"control_id": cid, "error": str(e), "json_cards": [], "pdf_chunks": []}
+            )
     return {"controls": controls}
 
 

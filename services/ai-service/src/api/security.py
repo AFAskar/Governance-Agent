@@ -25,8 +25,7 @@ def warn_if_unprotected() -> None:
     """Log once at startup when the service runs without an API key."""
     if not _configured_key():
         logger.warning(
-            "AI_SERVICE_KEY is not set; API endpoints are unauthenticated. "
-            "Set it in production."
+            "AI_SERVICE_KEY is not set; API endpoints are unauthenticated. Set it in production."
         )
 
 

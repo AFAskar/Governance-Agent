@@ -8,31 +8,33 @@ Model: https://huggingface.co/google/embeddinggemma-300m
 import logging
 import os
 
-logger = logging.getLogger(__name__)
+# Default to offline (cache-only) model loading for fast restarts; must be set
+# before any HuggingFace import. Override with HF_HUB_OFFLINE=0 for the
+# first-time download.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
 
-os.environ["HF_HUB_OFFLINE"] = "1"  # Set to "0" for first-time model download.
 
 import torch
-from sentence_transformers import SentenceTransformer
-from typing import List, Optional
-
 from huggingface_hub import login
+from sentence_transformers import SentenceTransformer
+
+logger = logging.getLogger(__name__)
 
 _LOGIN_DONE = False
 
 
 class GemmaEmbedder:
     """Wrapper for Google EmbeddingGemma 300M embedding model."""
-    
+
     def __init__(
-        self, 
-        model_name: str = "google/embeddinggemma-300m", 
-        device: Optional[str] = None,
-        token: Optional[str] = None
+        self,
+        model_name: str = "google/embeddinggemma-300m",
+        device: str | None = None,
+        token: str | None = None,
     ):
         """
         Initialize EmbeddingGemma embedder.
-        
+
         Args:
             model_name: HuggingFace model name (default: google/embeddinggemma-300m)
                        This is the 300M parameter embedding model designed for embeddings.
@@ -45,7 +47,7 @@ class GemmaEmbedder:
         self.model = None
         self.token = token or os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN")
         self._load_model()
-    
+
     def _load_model(self):
         """Load the EmbeddingGemma model using sentence-transformers."""
         global _LOGIN_DONE
@@ -62,11 +64,7 @@ class GemmaEmbedder:
 
         logger.info("Loading embedding model %s on device %s", self.model_name, self.device)
         try:
-            self.model = SentenceTransformer(
-                self.model_name,
-                device=self.device,
-                **model_kwargs
-            )
+            self.model = SentenceTransformer(self.model_name, device=self.device, **model_kwargs)
             logger.info("Embedding model loaded successfully")
         except Exception as e:
             error_msg = str(e)
@@ -93,48 +91,45 @@ class GemmaEmbedder:
                     "   - Set environment variable: export HF_TOKEN=your_token"
                 )
             raise RuntimeError(f"Failed to load model: {e}")
-    
-    def embed_text(self, text: str) -> List[float]:
+
+    def embed_text(self, text: str) -> list[float]:
         """
         Generate embedding for a single text.
-        
+
         Args:
             text: Text to embed
-            
+
         Returns:
             Embedding vector as list of floats
         """
         return self.embed_batch([text])[0]
-    
-    def embed_batch(self, texts: List[str], batch_size: int = 32) -> List[List[float]]:
+
+    def embed_batch(self, texts: list[str], batch_size: int = 32) -> list[list[float]]:
         """
         Generate embeddings for a batch of texts.
-        
+
         Args:
             texts: List of texts to embed
             batch_size: Batch size for processing
-            
+
         Returns:
             List of embedding vectors
         """
         if not texts:
             return []
-        
+
         # Use sentence-transformers encode method
         embeddings = self.model.encode(
-            texts,
-            batch_size=batch_size,
-            show_progress_bar=len(texts) > 10,
-            convert_to_numpy=True
+            texts, batch_size=batch_size, show_progress_bar=len(texts) > 10, convert_to_numpy=True
         )
-        
+
         # Convert to list of lists
         return embeddings.tolist()
-    
+
     def get_embedding_dim(self) -> int:
         """
         Get the dimension of embeddings produced by this model.
-        
+
         Returns:
             Embedding dimension (768 for EmbeddingGemma-300M)
         """
@@ -145,18 +140,18 @@ class GemmaEmbedder:
 
 # Convenience function for quick usage
 def load_gemma_embedder(
-    model_name: str = "google/embeddinggemma-300m", 
-    device: Optional[str] = None,
-    token: Optional[str] = None
+    model_name: str = "google/embeddinggemma-300m",
+    device: str | None = None,
+    token: str | None = None,
 ) -> GemmaEmbedder:
     """
     Load and return a Gemma embedder instance.
-    
+
     Args:
         model_name: HuggingFace model name (default: google/embeddinggemma-300m)
         device: Device to use ('cpu', 'cuda', or None for auto-detection)
         token: HuggingFace token for gated models (or set HF_TOKEN env var)
-        
+
     Returns:
         GemmaEmbedder instance
     """

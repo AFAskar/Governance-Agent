@@ -43,7 +43,7 @@ async def submit_evaluation(
     ),
     domain_ids: str = Form(
         default="",
-        description="Comma-separated domain IDs, one per file (e.g. '1_Data_Governance,1_Data_Governance,2_Data_Catalog')"
+        description="Comma-separated domain IDs, one per file (e.g. '1_Data_Governance,1_Data_Governance,2_Data_Catalog')",
     ),
 ) -> SubmitEvaluationResponse:
     """
@@ -63,30 +63,24 @@ async def submit_evaluation(
 
     n_files = len(files)
     if n_files > _MAX_FILES:
-        raise HTTPException(
-            status_code=400, detail=f"Maximum {_MAX_FILES} files allowed"
-        )
+        raise HTTPException(status_code=400, detail=f"Maximum {_MAX_FILES} files allowed")
 
     # Parse domain_ids
     domain_ids_list = []
     if domain_ids.strip():
         if not _DOMAIN_IDS_RE.match(domain_ids):
-            raise HTTPException(
-                status_code=400, detail="Invalid domain_ids format"
-            )
+            raise HTTPException(status_code=400, detail="Invalid domain_ids format")
         domain_ids_list = [d.strip() for d in domain_ids.split(",")]
         if len(domain_ids_list) != n_files:
             raise HTTPException(
                 status_code=400,
-                detail=f"domain_ids has {len(domain_ids_list)} entries but {n_files} files; they must match"
+                detail=f"domain_ids has {len(domain_ids_list)} entries but {n_files} files; they must match",
             )
 
     file_tuples: list[tuple[str, bytes]] = []
     for u in files:
         if not u.filename:
-            raise HTTPException(
-                status_code=400, detail="Each file must have a filename"
-            )
+            raise HTTPException(status_code=400, detail="Each file must have a filename")
         body = await u.read()
         if not body:
             raise HTTPException(status_code=400, detail=f"File '{u.filename}' is empty")
@@ -120,8 +114,8 @@ async def get_evaluation_report(evaluation_id: str) -> FileResponse:
     """Download the generated report PDF for an evaluation."""
     try:
         uuid.UUID(evaluation_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="evaluation_id must be a valid UUID")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="evaluation_id must be a valid UUID") from exc
 
     path = _REPORTS_DIR / f"{evaluation_id}.pdf"
     if not path.is_file():

@@ -6,12 +6,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+logger = logging.getLogger(__name__)
 
 
 def _project_root() -> Path:
@@ -44,11 +44,12 @@ def build_report_pdf(state: dict[str, Any]) -> str:
     story.append(Spacer(1, 24))
 
     story.append(Paragraph("Executive Summary", styles["Heading1"]))
-    story.append(Paragraph(
-        f"Total files evaluated: {len(file_evaluations)}. "
-        "See per-file assessments below.",
-        styles["Normal"],
-    ))
+    story.append(
+        Paragraph(
+            f"Total files evaluated: {len(file_evaluations)}. See per-file assessments below.",
+            styles["Normal"],
+        )
+    )
     story.append(Spacer(1, 16))
 
     story.append(Paragraph("Control IDs per file (mimic JSON)", styles["Heading2"]))
@@ -66,10 +67,22 @@ def build_report_pdf(state: dict[str, Any]) -> str:
             # Render table: Control ID | Decision | Rationale
             # Use Paragraph for cells so text wraps instead of overflowing
             def _cell(text: str, style_name: str = "Normal") -> Paragraph:
-                escaped = str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>")
+                escaped = (
+                    str(text)
+                    .replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br/>")
+                )
                 return Paragraph(escaped, styles[style_name])
 
-            rows = [[_cell("Control ID", "Heading2"), _cell("Decision", "Heading2"), _cell("Rationale", "Heading2")]]
+            rows = [
+                [
+                    _cell("Control ID", "Heading2"),
+                    _cell("Decision", "Heading2"),
+                    _cell("Rationale", "Heading2"),
+                ]
+            ]
             for cd in control_decisions:
                 cid = _cell(str(cd.get("control_id", "")))
                 decision = _cell(str(cd.get("decision", "")))
@@ -77,20 +90,24 @@ def build_report_pdf(state: dict[str, Any]) -> str:
                 rows.append([cid, decision, rationale])
             # Rationale column gets most width; total ~420pt fits A4
             t = Table(rows, colWidths=[70, 70, 270])
-            t.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
-            ]))
+            t.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 6),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                    ]
+                )
+            )
             story.append(t)
             story.append(Spacer(1, 8))
         summary = ev.get("summary") or ev.get("evaluation") or ""

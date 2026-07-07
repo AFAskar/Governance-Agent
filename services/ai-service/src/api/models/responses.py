@@ -27,16 +27,23 @@ class SetupFrameworkResponse(BaseModel):
     framework_name: str = Field(..., description="Framework identifier")
     total_controls: int = Field(..., ge=0, description="Total controls across all sections")
     sections: list[ControlSummary] = Field(default_factory=list, description="Per-section summary")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="When the setup completed")
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow, description="When the setup completed"
+    )
 
 
 class SubmitEvaluationResponse(BaseModel):
     """Response after submitting an evaluation (files + framework)."""
 
     evaluation_id: str = Field(..., description="Unique evaluation run ID")
-    mimic_json: dict = Field(..., description="framework_name -> field_N -> comma-separated control IDs assigned to that file")
+    mimic_json: dict = Field(
+        ...,
+        description="framework_name -> field_N -> comma-separated control IDs assigned to that file",
+    )
     report_path: str = Field("", description="Path to the generated report PDF")
-    file_evaluations: list[dict] = Field(default_factory=list, description="Per-file assessment results")
+    file_evaluations: list[dict] = Field(
+        default_factory=list, description="Per-file assessment results"
+    )
 
 
 class ExtractionError(Exception):

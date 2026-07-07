@@ -5,7 +5,7 @@ Handles per-PDF extraction saves, input paths, and RAG helpers.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 def _project_root() -> Path:
@@ -15,8 +15,8 @@ def _project_root() -> Path:
 def save_extraction_json(
     framework_name: str,
     pdf_path: str,
-    controls_json: Dict[str, Any],
-    custom_name: Optional[str] = None,
+    controls_json: dict[str, Any],
+    custom_name: str | None = None,
 ) -> Path:
     """
     Save extracted controls for a single PDF as JSON under config/frameworks/{framework_name}/.
@@ -44,7 +44,7 @@ def save_extraction_json(
     return out_path
 
 
-def get_input_paths() -> Dict[str, Path]:
+def get_input_paths() -> dict[str, Path]:
     """
     Get standard input directory paths.
 
@@ -62,7 +62,7 @@ def get_input_paths() -> Dict[str, Path]:
     }
 
 
-def list_framework_jsons(framework_name: str) -> List[Tuple[str, Dict[str, Any]]]:
+def list_framework_jsons(framework_name: str) -> list[tuple[str, dict[str, Any]]]:
     """
     Load all JSON files for a framework from config/frameworks/{framework_name}/.
 
@@ -72,10 +72,10 @@ def list_framework_jsons(framework_name: str) -> List[Tuple[str, Dict[str, Any]]
     base = _project_root() / "config" / "frameworks" / framework_name
     if not base.is_dir():
         return []
-    out: List[Tuple[str, Dict[str, Any]]] = []
+    out: list[tuple[str, dict[str, Any]]] = []
     for p in sorted(base.glob("*.json")):
         try:
-            with open(p, "r", encoding="utf-8") as f:
+            with open(p, encoding="utf-8") as f:
                 data = json.load(f)
             out.append((p.stem, data))
         except Exception:
@@ -83,7 +83,7 @@ def list_framework_jsons(framework_name: str) -> List[Tuple[str, Dict[str, Any]]
     return out
 
 
-def get_vector_db_pdf_paths(framework_name: str) -> List[Path]:
+def get_vector_db_pdf_paths(framework_name: str) -> list[Path]:
     """
     PDF paths used as input for the vector DB. Looks in data/inputs/vector_db/.
 

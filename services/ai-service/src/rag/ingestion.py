@@ -4,20 +4,18 @@ RAG ingestion: index JSON control cards + PDF chunks into Qdrant.
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+
+from src.embeddings import add_documents, initialize_qdrant
+from src.processing import chunk_text, extract_text_from_pdf
+from src.rag._shared import get_shared_embedder
+from src.utils import get_vector_db_pdf_paths, list_framework_jsons
 
 logger = logging.getLogger(__name__)
-
-from src.processing import extract_text_from_pdf, chunk_text
-from src.utils import list_framework_jsons, get_vector_db_pdf_paths
-from src.embeddings import initialize_qdrant, add_documents
-
-from src.rag._shared import get_shared_embedder
 
 
 def index_framework(
     framework_name: str,
-    pdf_paths: Optional[List[str]] = None,
+    pdf_paths: list[str] | None = None,
 ) -> None:
     """
     Index a framework for RAG: JSON control cards + PDF chunks from vector_db input.
@@ -33,7 +31,7 @@ def index_framework(
     collection = f"{framework_name}_rag"
     client = initialize_qdrant(collection_name=collection, vector_size=dim)
 
-    all_docs: List[dict] = []
+    all_docs: list[dict] = []
 
     # --- JSON control cards ---
     for stem, data in list_framework_jsons(framework_name):
@@ -45,21 +43,22 @@ def index_framework(
             thresh = c.get("threshold", "")
             scale = c.get("scale", "")
             text = (
-                f"Control {cid}. {desc} "
-                f"Calculation: {calc}. Threshold: {thresh}. Scale: {scale}."
+                f"Control {cid}. {desc} Calculation: {calc}. Threshold: {thresh}. Scale: {scale}."
             )
             safe_id = (cid or "unknown").replace(".", "_")
             chunk_id = f"json_{framework_name}_{safe_id}_{stem}"
-            all_docs.append({
-                "text": text,
-                "chunk_id": chunk_id,
-                "framework_name": fw_name,
-                "metadata": {
-                    "source": "json",
-                    "control_id": cid,
-                    "source_pdf": stem,
-                },
-            })
+            all_docs.append(
+                {
+                    "text": text,
+                    "chunk_id": chunk_id,
+                    "framework_name": fw_name,
+                    "metadata": {
+                        "source": "json",
+                        "control_id": cid,
+                        "source_pdf": stem,
+                    },
+                }
+            )
 
     # --- PDF chunks ---
     if pdf_paths is None:

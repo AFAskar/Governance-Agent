@@ -1,6 +1,8 @@
 # Evaluation Agent System Design
 ## Multi-File Compliance Evaluation with RAG & Tool Integration
 
+> **Note:** This document is an aspirational design proposal. The implemented system uses a synchronous Groq-based LangGraph agent without Celery, MinIO, or a locally hosted LLM. See [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md) and [`src/agent/graph.py`](src/agent/graph.py) for what is actually built.
+
 ---
 
 ## 🎯 System Overview

@@ -7,7 +7,7 @@ import json
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, List
+from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 def extract_controls_from_framework(
     pdf_text: str, framework_name: str, use_fallback_prompt: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Extract compliance controls from PDF text using LLM.
 
@@ -37,10 +37,7 @@ def extract_controls_from_framework(
     if not api_key:
         raise ValueError("OPENROUTER_API_KEY not found")
 
-    client = OpenAI(
-        api_key=api_key,
-        base_url="https://openrouter.ai/api/v1"
-    )
+    client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
 
     schema_and_doc = f"""
 ### STRICT JSON SCHEMA
@@ -121,7 +118,7 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
             ],
             temperature=temperature,
             seed=42,
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
         )
     except Exception as e:
         logger.error("LLM API call failed for framework '%s': %s", framework_name, e)
@@ -146,15 +143,17 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
         result_json = json.loads(result_text)
     except json.JSONDecodeError as e:
         preview = (result_text or "")[:200]
-        logger.warning("JSON parsing error: %s. Raw response (len=%d): %r", e, len(result_text or ""), preview)
+        logger.warning(
+            "JSON parsing error: %s. Raw response (len=%d): %r", e, len(result_text or ""), preview
+        )
         # Try to fix truncated JSON by finding last complete structure
-        last_brace = result_text.rfind('}')
-        last_bracket = result_text.rfind(']')
+        last_brace = result_text.rfind("}")
+        last_bracket = result_text.rfind("]")
         end_pos = max(last_brace, last_bracket)
 
         if end_pos > 0:
             try:
-                result_json = json.loads(result_text[:end_pos + 1])
+                result_json = json.loads(result_text[: end_pos + 1])
                 logger.info("Successfully parsed truncated JSON")
             except Exception:
                 logger.warning("Could not parse JSON, returning empty controls")
@@ -163,12 +162,12 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
             return {"framework_name": framework_name, "controls": []}
 
     # Find controls array - check common keys first
-    controls_array: List[Dict[str, Any]] = []
+    controls_array: list[dict[str, Any]] = []
     if isinstance(result_json, list):
         controls_array = result_json
     elif isinstance(result_json, dict):
         # Try common keys (including compliance_controls)
-        for key in ['controls', 'compliance_controls', 'items', 'data', 'Domain']:
+        for key in ["controls", "compliance_controls", "items", "data", "Domain"]:
             if key in result_json and isinstance(result_json[key], list):
                 controls_array = result_json[key]
                 break
@@ -181,18 +180,15 @@ Return ONLY a valid JSON object matching the schema above. No other keys or fiel
                     break
 
         # If still not found and it's a single control object, wrap it in array
-        if not controls_array and 'id' in result_json:
+        if not controls_array and "id" in result_json:
             controls_array = [result_json]
 
-    return {
-        "framework_name": framework_name,
-        "controls": controls_array
-    }
+    return {"framework_name": framework_name, "controls": controls_array}
 
 
 def extract_controls_from_pdfs(
-    pdf_paths_list: List[str], framework_name: str
-) -> List[List[Dict[str, Any]]]:
+    pdf_paths_list: list[str], framework_name: str
+) -> list[list[dict[str, Any]]]:
     """
     Extract controls from multiple PDFs in parallel.
     Each PDF gets one LLM call.
@@ -206,7 +202,7 @@ def extract_controls_from_pdfs(
     """
     MAX_RETRIES = 3
 
-    def extract_pdf(pdf_path: str) -> List[Dict[str, Any]]:
+    def extract_pdf(pdf_path: str) -> list[dict[str, Any]]:
         """Extract controls from a single PDF. Retries with fallback prompt if empty."""
         try:
             pdf_text = extract_text_from_pdf(pdf_path)
@@ -218,7 +214,12 @@ def extract_controls_from_pdfs(
             retries = 0
             while len(controls) == 0 and retries < MAX_RETRIES:
                 retries += 1
-                logger.info("Empty controls for %s, retry %d/%d with fallback prompt", pdf_path, retries, MAX_RETRIES)
+                logger.info(
+                    "Empty controls for %s, retry %d/%d with fallback prompt",
+                    pdf_path,
+                    retries,
+                    MAX_RETRIES,
+                )
                 controls_json = extract_controls_from_framework(
                     pdf_text, framework_name, use_fallback_prompt=True
                 )

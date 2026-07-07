@@ -81,6 +81,7 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
@@ -89,6 +90,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return response
+
 
 app.add_middleware(SecurityHeadersMiddleware)
 
@@ -124,4 +126,5 @@ async def value_error_handler(request, exc: ValueError):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

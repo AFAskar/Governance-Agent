@@ -102,27 +102,27 @@ def run_evaluation_agent(
     # Persist files and build file list with path, field_id, and domain_id
     file_list = []
     for i, (filename, body) in enumerate(files):
-        raw_name = Path(filename or f"file_{i+1}").name
-        safe_name = re.sub(r"[^a-zA-Z0-9._\-]", "_", raw_name).lstrip(".") or f"file_{i+1}"
+        raw_name = Path(filename or f"file_{i + 1}").name
+        safe_name = re.sub(r"[^a-zA-Z0-9._\-]", "_", raw_name).lstrip(".") or f"file_{i + 1}"
         path = eval_dir / safe_name
         path.write_bytes(body)
         field_id = f"field_{i + 1}"
         domain_id = domain_ids[i] if domain_ids else ""
-        file_list.append({
-            "path": str(path),
-            "extracted_text": "",
-            "field_id": field_id,
-            "domain_id": domain_id,
-        })
+        file_list.append(
+            {
+                "path": str(path),
+                "extracted_text": "",
+                "field_id": field_id,
+                "domain_id": domain_id,
+            }
+        )
 
     # Resolve each file's domain to its control IDs and build the mimic JSON
     if domain_ids:
         control_ids_per_file = resolve_control_ids(framework_name, domain_ids)
     else:
         control_ids_per_file = [""] * n
-    field_control_ids = [
-        (f"field_{i + 1}", ids) for i, ids in enumerate(control_ids_per_file)
-    ]
+    field_control_ids = [(f"field_{i + 1}", ids) for i, ids in enumerate(control_ids_per_file)]
     mimic_json = build_mimic_json(framework_name, field_control_ids)
 
     initial_state: EvaluationState = {

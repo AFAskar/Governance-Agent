@@ -6,17 +6,17 @@ import json
 import logging
 from typing import Any, Literal
 
-logger = logging.getLogger(__name__)
-
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langchain_core.messages import RemoveMessage
-from langgraph.graph import StateGraph, END, START
+from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage, ToolMessage
+from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
-from .state import EvaluationState
 from .groq_client import get_groq_llm
-from .tools import get_tool_schemas, execute_tool
 from .report import build_report_pdf
+from .state import EvaluationState
+from .tools import execute_tool, get_tool_schemas
+
+logger = logging.getLogger(__name__)
+
 
 def _file_processing_node(state: EvaluationState) -> dict[str, Any]:
     """Extract text for all files; set state.files with path, extracted_text, field_id."""
@@ -132,7 +132,9 @@ def _file_eval_done_node(state: EvaluationState) -> dict[str, Any]:
     evaluations = list(state.get("file_evaluations") or [])
     files = state.get("files") or []
     idx = state.get("current_file_index", 0)
-    field_id = files[idx].get("field_id", f"field_{idx + 1}") if idx < len(files) else f"field_{idx + 1}"
+    field_id = (
+        files[idx].get("field_id", f"field_{idx + 1}") if idx < len(files) else f"field_{idx + 1}"
+    )
     content = ""
     if messages:
         last = messages[-1]
@@ -152,13 +154,19 @@ def _file_eval_done_node(state: EvaluationState) -> dict[str, Any]:
     # Try to parse as structured JSON
     try:
         parsed = json.loads(content_stripped)
-        if isinstance(parsed, dict) and isinstance(parsed.get("control_decisions"), list) and parsed["control_decisions"]:
-            evaluations.append({
-                "file_index": idx,
-                "field_id": field_id,
-                "control_decisions": parsed["control_decisions"],
-                "summary": parsed.get("summary", ""),
-            })
+        if (
+            isinstance(parsed, dict)
+            and isinstance(parsed.get("control_decisions"), list)
+            and parsed["control_decisions"]
+        ):
+            evaluations.append(
+                {
+                    "file_index": idx,
+                    "field_id": field_id,
+                    "control_decisions": parsed["control_decisions"],
+                    "summary": parsed.get("summary", ""),
+                }
+            )
         else:
             evaluations.append({"file_index": idx, "field_id": field_id, "summary": content})
     except (json.JSONDecodeError, TypeError) as e:
@@ -205,7 +213,9 @@ def build_evaluation_graph() -> StateGraph:
         {"tools": "file_eval_tools", "file_eval_done": "file_eval_done"},
     )
     workflow.add_edge("file_eval_tools", "file_eval_agent")
-    workflow.add_conditional_edges("file_eval_done", _more_files, {"file_eval_agent": "file_eval_agent", "report": "report"})
+    workflow.add_conditional_edges(
+        "file_eval_done", _more_files, {"file_eval_agent": "file_eval_agent", "report": "report"}
+    )
     workflow.add_edge("report", END)
 
     return workflow.compile()

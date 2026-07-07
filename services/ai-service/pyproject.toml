@@ -1,7 +1,7 @@
 [project]
 name = "ai-service"
 version = "0.1.0"
-description = "Add your description here"
+description = "Compliance framework extraction and AI evaluation service (FastAPI + LangGraph + Qdrant RAG)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -37,5 +37,40 @@ dependencies = [
 override-dependencies = [
     "torch==2.5.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["test.ipynb"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # import sorting
+    "B",  # bugbear
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # long lines: mostly prompts and log messages; formatter handles code
+    "B008",  # FastAPI File()/Form() in route signatures (framework convention)
+    "B904",  # raise-from in legacy error handlers; safe to tighten incrementally
+]
+
+[tool.ruff.lint.per-file-ignores]
+# HF_HUB_OFFLINE must be set before any HuggingFace import
+"src/embeddings/gemma_embedder.py" = ["E402"]
+# Legacy scoring module; docstrings contain intentional blank lines with spacing
+"src/Tools/oe.py" = ["W293"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 

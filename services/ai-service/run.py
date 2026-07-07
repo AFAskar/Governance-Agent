@@ -15,13 +15,11 @@ _OPTIONAL_ENV = ["HF_TOKEN"]
 
 missing = [var for var in _REQUIRED_ENV if not os.getenv(var)]
 if missing:
-    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
+    raise OSError(f"Missing required environment variables: {', '.join(missing)}")
 
 for var in _OPTIONAL_ENV:
     if not os.getenv(var):
-        logger.warning(
-            "%s is not set; the embedding model must already be cached locally", var
-        )
+        logger.warning("%s is not set; the embedding model must already be cached locally", var)
 
 host = os.getenv("SERVER_HOST", "0.0.0.0")
 port = int(os.getenv("SERVER_PORT", "8000"))

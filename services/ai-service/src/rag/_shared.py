@@ -4,11 +4,11 @@ Reuse across index_framework and retrieve_control_details to avoid repeated mode
 """
 
 import threading
-from typing import Any, Optional
+from typing import Any
 
 from src.embeddings import load_gemma_embedder
 
-_cached_embedder: Optional[Any] = None
+_cached_embedder: Any | None = None
 _lock = threading.Lock()
 
 

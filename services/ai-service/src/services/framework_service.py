@@ -10,11 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from src.core import extract_controls_from_pdfs
 from src.rag import index_framework
 from src.utils import get_input_paths, save_extraction_json
+
+logger = logging.getLogger(__name__)
 
 
 def _project_root() -> Path:
@@ -66,7 +66,9 @@ class FrameworkService:
             sections_out: list[dict[str, Any]] = []
             total_controls = 0
 
-            for section_name, controls_array in zip(section_names_order, controls_arrays):
+            for section_name, controls_array in zip(
+                section_names_order, controls_arrays, strict=True
+            ):
                 obj: dict[str, Any] = {"framework_name": framework_name, "controls": controls_array}
                 pdf_path = str(temp_dir / f"{section_name}.pdf")
                 saved_path = save_extraction_json(
@@ -76,11 +78,13 @@ class FrameworkService:
                     json_path_rel = saved_path.relative_to(project_root)
                 except ValueError:
                     json_path_rel = saved_path
-                sections_out.append({
-                    "section_name": section_name,
-                    "controls_count": len(controls_array),
-                    "json_path": str(json_path_rel),
-                })
+                sections_out.append(
+                    {
+                        "section_name": section_name,
+                        "controls_count": len(controls_array),
+                        "json_path": str(json_path_rel),
+                    }
+                )
                 total_controls += len(controls_array)
 
             # Persist PDFs for RAG and index into vector DB
@@ -88,7 +92,9 @@ class FrameworkService:
             vector_db_dir = paths["vector_db"] / framework_name
             vector_db_dir.mkdir(parents=True, exist_ok=True)
             pdf_paths_for_rag: list[str] = []
-            for (section_name, content), safe_name in zip(pdf_sections, section_names_order):
+            for (_section_name, content), safe_name in zip(
+                pdf_sections, section_names_order, strict=True
+            ):
                 out_pdf = vector_db_dir / f"{safe_name}.pdf"
                 out_pdf.write_bytes(content)
                 pdf_paths_for_rag.append(str(out_pdf))

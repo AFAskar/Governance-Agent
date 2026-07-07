@@ -4,19 +4,18 @@ Designed for use by agents as a callable tool.
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any
 
-logger = logging.getLogger(__name__)
-
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client.models import FieldCondition, Filter, MatchValue
 
 from src.embeddings import (
-    initialize_qdrant,
     fetch_by_filter,
+    initialize_qdrant,
     search_similar_filtered,
 )
 from src.rag._shared import get_shared_embedder
 
+logger = logging.getLogger(__name__)
 
 # Tool schema for agent/tool registries (OpenAI tools, LangChain, etc.)
 RETRIEVE_CONTROL_DETAILS_TOOL_SCHEMA = {
@@ -59,7 +58,7 @@ def retrieve_control_details(
     framework_name: str,
     *,
     top_k_pdf: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Retrieve all details for a control: JSON cards (filtered by control_id) + top-k
     PDF chunks (semantic search). Safe to use as an agent tool.

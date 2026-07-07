@@ -17,7 +17,9 @@ _FRAMEWORK_NAME_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
 
 @router.post("/setup", response_model=SetupFrameworkResponse)
 async def setup_framework(
-    framework_name: str = Form(..., min_length=1, max_length=64, description="Framework identifier"),
+    framework_name: str = Form(
+        ..., min_length=1, max_length=64, description="Framework identifier"
+    ),
     section_names: str = Form(
         ...,
         description="Comma-separated section names (one per PDF, same order as files). Example: policies,procedures,controls",
@@ -46,7 +48,7 @@ async def setup_framework(
 
     # Validate PDFs and read bytes
     pdf_sections: list[tuple[str, bytes]] = []
-    for name, upload in zip(section_names_list, files):
+    for name, upload in zip(section_names_list, files, strict=True):
         if not name or not name.strip():
             raise HTTPException(
                 status_code=400,

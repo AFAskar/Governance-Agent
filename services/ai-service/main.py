@@ -37,10 +37,7 @@ def setup_framework(pdf_paths: str | list[str], framework_name: str) -> list[Pat
     if not pdf_paths_list:
         raise ValueError(f"No PDF files found: {pdf_paths}")
 
-    pdf_sections = [
-        (Path(p).stem, Path(p).read_bytes())
-        for p in pdf_paths_list
-    ]
+    pdf_sections = [(Path(p).stem, Path(p).read_bytes()) for p in pdf_paths_list]
     service = FrameworkService()
     result = service.setup_framework(framework_name=framework_name, pdf_sections=pdf_sections)
 
@@ -58,7 +55,7 @@ def main():
     print("\nDirectory structure:")
     print(f"  Input PDFs (Frameworks): {paths['frameworks']}")
     print(f"  Input PDFs (Applicants): {paths['applicants']}")
-    print(f"  Framework outputs: config/frameworks/")
+    print("  Framework outputs: config/frameworks/")
 
     print("\nUsage:")
     print("   setup_framework('data/inputs/frameworks/<dir>', 'framework_name')")

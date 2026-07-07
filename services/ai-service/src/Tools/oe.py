@@ -1,5 +1,4 @@
 from typing import Literal
-import math
 
 SCALE = Literal["Unacceptable", "Low", "Fair", "Good", "Excellent", "Leader"]
 WEIGHTS = {
@@ -169,9 +168,7 @@ def calculate_Adherence_to_the_Data_Sharing_Policy(
     c = 1 if is_classified else 0
     num_Certified_attribs = len(Certified_attribs)
     num_total_attribs = len(total_attribs)
-    result = (
-        API_WEIGHTS[0] * num_Certified_attribs / num_total_attribs + API_WEIGHTS[1] * c
-    ) * 100
+    result = (API_WEIGHTS[0] * num_Certified_attribs / num_total_attribs + API_WEIGHTS[1] * c) * 100
     output = get_high_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
@@ -182,11 +179,9 @@ def calculate_Systems_integrated_with_NDL(num_integrated, total_systems) -> int:
     return SCALE_TO_INT_MAP[output]
 
 
-def Data_sharing_agreement_processing(
-    days_taken_for_approve_deny, total_agreements
-) -> int:
+def Data_sharing_agreement_processing(days_taken_for_approve_deny, total_agreements) -> int:
     """DSI.OE.03 - Measures days taken to process data sharing agreements
-    
+
     Scale Intervals:
     - Unacceptable: > 10 days
     - Low: (8 days, 10 days]
@@ -210,7 +205,7 @@ def Data_sharing_agreement_processing(
         output = "Excellent"
     else:  # <= 2
         output = "Leader"
-    
+
     return SCALE_TO_INT_MAP[output]
 
 
@@ -274,10 +269,7 @@ def Reported_issues_for_the_published_datasets(
     Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP, total_published
 ) -> int:
     """OD.OE.03"""
-    result = (
-        Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP
-        / total_published
-    )
+    result = Number_of_issues_reported_on_the_entitys_published_datasets_in_ODP / total_published
 
     output = get_low_good_int_scale(result)
     return SCALE_TO_INT_MAP[output]
@@ -287,11 +279,7 @@ def Delay_in_resolving_reported_issues_on_published_datasets(
     time_taken_to_resolve, expected_resolution_time
 ) -> int:
     """OD.OE.04"""
-    result = (
-        (time_taken_to_resolve - expected_resolution_time)
-        / expected_resolution_time
-        * 100
-    )
+    result = (time_taken_to_resolve - expected_resolution_time) / expected_resolution_time * 100
     output = get_low_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
@@ -301,8 +289,7 @@ def Response_effectiveness_to_new_open_dataset_requests(
 ) -> int:
     """OD.OE.05"""
     result = (
-        1
-        - (time_taken_to_process - expected_processing_time) / expected_processing_time
+        1 - (time_taken_to_process - expected_processing_time) / expected_processing_time
     ) * 100
     output = get_high_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
@@ -357,18 +344,14 @@ def Reporting_assets_defined_in_NDC(num_reporting, total) -> int:
     return SCALE_TO_INT_MAP[output]
 
 
-def Business_attributes_linked_to_attribute_class_standards_in_NDC(
-    num_linked, total
-) -> int:
+def Business_attributes_linked_to_attribute_class_standards_in_NDC(num_linked, total) -> int:
     """MCM.OE.04"""
     result = num_linked / total * 100
     output = get_high_good_percentage_scale(result)
     return SCALE_TO_INT_MAP[output]
 
 
-def Accuracy_of_business_attribute_relationships_in_NDC(
-    num_incorrect, total_defined
-) -> int:
+def Accuracy_of_business_attribute_relationships_in_NDC(num_incorrect, total_defined) -> int:
     """MCM.OE.05"""
     result = num_incorrect / total_defined * 100
     output = get_low_good_percentage_scale(result)
@@ -377,9 +360,7 @@ def Accuracy_of_business_attribute_relationships_in_NDC(
 
 def calculate_domain_three_MCM(*args, **kwargs) -> dict[str, int]:
     return {
-        "MCM.OE.01": Systems_cataloged_in_NDC(
-            kwargs.get("num_cat"), kwargs.get("total")
-        ),
+        "MCM.OE.01": Systems_cataloged_in_NDC(kwargs.get("num_cat"), kwargs.get("total")),
         "MCM.OE.02": Business_attributes_defined_and_linked_in_NDC(
             kwargs.get("num_defined"), kwargs.get("total")
         ),
@@ -470,9 +451,7 @@ def calculate_domain_five_DQ(*args, **kwargs) -> dict[str, int]:
     }
 
 
-def Delay_in_response_time_of_GSBAPIs(
-    response_time, expected_response_time, num_calls
-) -> int:
+def Delay_in_response_time_of_GSBAPIs(response_time, expected_response_time, num_calls) -> int:
     """DO.OE.01"""
     result = response_time / (expected_response_time * num_calls) * 100
     output = get_low_good_percentage_scale(result)
@@ -515,7 +494,7 @@ def calculate_domain_six_DO(*args, **kwargs) -> dict[str, int]:
 
 def final_OE_metric(*args):
     """Calculate final OE score as weighted sum of all metric scores.
-    
+
     Formula: OE Score = sum(wi * si) for all metrics
     where wi is the weight and si is the score for metric i
     """
@@ -571,7 +550,7 @@ def final_OE_metric(*args):
         num_pipeline_failed=args[38],
         num_pipeline_calls=args[39],
     )
-    
+
     # Aggregate all metric scores from all domains
     all_metrics = {}
     all_metrics.update(domain_1)
@@ -580,12 +559,11 @@ def final_OE_metric(*args):
     all_metrics.update(domain_4)
     all_metrics.update(domain_5)
     all_metrics.update(domain_6)
-    
+
     # Calculate weighted sum, only for metrics that have weights defined
     oe = 0
     for metric_id, weight in WEIGHTS.items():
         if metric_id in all_metrics:
             oe += all_metrics[metric_id] * weight
-    
-    return oe
 
+    return oe

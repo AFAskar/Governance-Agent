@@ -6,11 +6,11 @@ import logging
 import os
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 # Model name; can be overridden via env (llama-3.1-70b-versatile was decommissioned Jan 2025)
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")

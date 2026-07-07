@@ -4,10 +4,10 @@ Dispatcher: given file path (and optional extension), call the right parser and 
 
 from pathlib import Path
 
-from .pdf_parser import extract_text_from_pdf
-from .tabular_parser import extract_text_from_tabular
-from .pptx_parser import extract_text_from_pptx
 from .docx_parser import extract_text_from_docx
+from .pdf_parser import extract_text_from_pdf
+from .pptx_parser import extract_text_from_pptx
+from .tabular_parser import extract_text_from_tabular
 
 
 def extract_text_from_file(path: str, extension: str | None = None) -> str:
