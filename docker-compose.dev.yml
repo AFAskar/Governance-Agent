@@ -10,9 +10,6 @@ services:
     volumes:
       - ai_data:/app/data
       - ai_config:/app/config
-    volumes:
-      - ai_data:/app/data
-      - ai_config:/app/config
     depends_on:
       vector_db:
         condition: service_started
@@ -93,10 +90,6 @@ volumes:
   db_data:
     driver: local
   qdrant_data:
-    driver: local
-  ai_data:
-    driver: local
-  ai_config:
     driver: local
   ai_data:
     driver: local

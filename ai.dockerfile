@@ -1,5 +1,5 @@
 # Build stage
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -7,14 +7,20 @@ ENV UV_COMPILE_BYTECODE=1
 ENV PYTHONPATH=/app/src
 ENV UV_INDEX_STRATEGY=unsafe-best-match
 ENV UV_HTTP_TIMEOUT=300
+ENV UV_PYTHON_PREFERENCE=only-system
 
 # Copy dependency files for caching
 COPY services/ai-service/pyproject.toml services/ai-service/uv.lock ./
 
 # Install CPU-only PyTorch to reduce image size dramatically
-RUN uv pip install --system --no-cache \
-    torch==2.5.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu
+# CPU index only has x86_64 wheels; ARM PyPI wheels are already CPU-only
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+      uv pip install --system --no-cache \
+        torch==2.5.1+cpu \
+        --index-url https://download.pytorch.org/whl/cpu; \
+    else \
+      uv pip install --system --no-cache torch==2.5.1; \
+    fi
 
 # Install other dependencies
 RUN uv sync --no-install-project --no-dev
@@ -44,7 +50,7 @@ RUN find /app/.venv -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true
 RUN find /app/.venv -name "test" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Runtime stage
-FROM python:3.13-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
