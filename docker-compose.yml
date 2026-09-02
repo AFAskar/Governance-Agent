@@ -3,6 +3,11 @@ services:
     build:
       context: .
       dockerfile: ai.dockerfile
+      args:
+        # The embedding model is gated on HuggingFace, so the token is needed
+        # at BUILD time to bake the weights into the image. env_file only
+        # applies at runtime, which is too late.
+        HF_TOKEN: ${HF_TOKEN:-}
     ports:
       - "5000:8000"
     env_file:
@@ -31,6 +36,22 @@ services:
       retries: 3
       start_period: 60s
 
+  # One-shot: creates the tables in a fresh database. The frontend crashes on
+  # its first query without this, so it waits for the push to exit cleanly.
+  migrate:
+    build:
+      context: .
+      dockerfile: next.dockerfile
+      target: builder
+    working_dir: /app/packages/db
+    environment:
+      - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@application_db:5432/${POSTGRES_DB:-app_db}
+    command: ["pnpm", "exec", "drizzle-kit", "push", "--force"]
+    depends_on:
+      application_db:
+        condition: service_healthy
+    restart: "no"
+
   frontend:
     build:
       context: .
@@ -48,6 +69,8 @@ services:
         condition: service_started
       application_db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
   vector_db:

@@ -1,0 +1,180 @@
+{
+  "framework_name": "NDI",
+  "controls": [
+    {
+      "id": "DO.OE.01",
+      "description": "Delay in response time of GSB APIs. This metric measures the delay in the response time of the entity’s GSB APIs after subtracting the time taken by the GSB platform. This metric only considers the actual processing time incurred by the entity after receiving a request from the consumer. This metric aims to improve business process integration and interoperability, and hence enhance the consumer experience and application resilience (Priority: P0)",
+      "calculation": "= Average delay percentage for all the entity’s APIs, where the delay percentage of one API is calculated as: = Sum of delay in response time of all API’s calls / (Number of calls for an API * expected response time of the API) * 100 where the delay in response time of an API call is calculated as follows: = Response time of the API – GSB latency – expected response time of the API",
+      "threshold": "10%",
+      "scale": "Unacceptable: > 10% Low: (8%, 10%] Fair: (6%, 8%] Good: (4%, 6%] Excellent: (2%, 4%] Leader: <= 2%"
+    },
+    {
+      "id": "DO.OE.02",
+      "description": "Responsiveness of GSB API calls. This metric measures the responsiveness of the entity APIs that are published on GSB by calculating the percentage of failed API calls invoked by the consumer applications on the APIs against the total number of API calls. Note that a failed API call refers to the scenario where the consumer application receives an error of any type from the called API. This metric aims to improve the resilience of GSB APIs, hence increasing the efficiency of business functions and processes, and enhancing the consumer experience (Priority: P0)",
+      "calculation": "= Average responsiveness score for all entity’s APIs, where the responsiveness of one API is calculated as follows: = (Total number of the API calls – Number of the API calls failed due to operational issues from the entity) / Total number of the API calls * 100",
+      "threshold": "94%",
+      "scale": "Unacceptable: <= 94% Low: (94%, 95%] Fair: (95%, 96%] Good: (96%, 97%] Excellent: (97%, 98%] Leader: > 98%"
+    },
+    {
+      "id": "DO.OE.03",
+      "description": "Responsiveness of the integration solution with NDL. This metric measures the responsiveness of the integration solution implemented by the entity by calculating the percentage of operational issues encountered by NDL against the number of data pipeline executions with the respective entity. Note that an execution is considered failed only if it is caused by an operational issue from the entity. This metric will be measured by NDL for each source entity with which NDL has operated data pipelines. 29 مﺎﻋ 18/11/2025 (Priority: P0)",
+      "calculation": "= Average responsiveness score for all entity’s systems, where the responsiveness score of one system is calculated as follows: = (Total number of the system’s data pipeline executions - Number of failed pipeline executions caused by operational issues from the entity) / Total number of the system’s data pipeline executions * 100",
+      "threshold": "94%",
+      "scale": "Unacceptable: <= 94% Low: (94%, 95%] Fair: (95%, 96%] Good: (96%, 97%] Excellent: (97%, 98%] Leader: > 98%"
+    },
+    {
+      "id": "DG.1.1",
+      "description": "Data Management and Personal Data Protection Strategy. The Entity shall establish a Data Management and Personal Data Protection Strategy to align Entity data initiatives and relevant stakeholders to achieving its business goals, in alignment with the overall program strategy. The Strategy shall cover all domains and reflect: 1. Current data management challenges 2. Strategic requirements covering internal requirements derived from the Entity's business strategy as well as external requirements derived from the National Data Management Agenda 3. Data Management and Personal Data Protection Vision, Mission and Strategic Goals and Objectives 4. Strategic and Operational performance metrics with targets across the 3 to 5 years strategy duration 5. Required financial budget for the implementation of the strategy, broken down by initiatives (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.1.2",
+      "description": "Guiding Principles. The Entity shall adopt the National Data Management and Personal Data Protection Program's Guiding Principles to affirm alignment of the Entity's Data Management and Personal Data Protection Strategy to the National Data Management and Personal Data Protection agendas. The Entity may, at its discretion, include additional Entity-level guiding principles to augment the core set of NDMO Guiding Principles. Adoption of the National Data Management and Personal Data Protection Program's Guiding Principles shall be articulated either in the Data Management and Personal Data Protection Strategy or as a standalone document. The guiding principles establish a data-centric culture where all stakeholders are unified in understanding what is most important for the Entity's Data Management and Personal Data Protection agendas (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.1.3",
+      "description": "Data Management and Personal Data Protection Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy, the Entity shall develop a Data Management and Personal Data Protection Plan with a 3-year implementation roadmap. The implementation roadmap shall include, at minimum, the following: 1. Initiatives that cover all the Data Management Domains defined in these standards and in alignment with the National Data Management and Personal Data Protection Framework 2. Prioritization of the list of initiatives based on a prioritization framework such as, at minimum, Impact versus Ease of Implementation 1. Highlight of the initiatives that are Quick Wins and planned to be implemented within the first 6 months, and the mid to long term initiatives that are planned throughout the 3-year period. DG 1.4 Strategy Approval and Socialization The Entity shall obtain formal approval of their Data Management and Personal Data Protection Strategy by the Entity’s Data Management Committee and other related senior level executives within the Entity. The Entity shall also socialize and raise awareness of the Data Management and Personal Data Protection Strategy in one or more internal workshops. P1 Version History June 2020 Version 1.0 Dependencies - None Domain Name Data Governance Domain ID DG Control Name Policy and Guidelines Control ID DG.2 Control Description As part of the Policy and Guidelines control, the Entity shall conduct a Data Management and Personal Data Protection Policy and Guidelines gap analysis, and develop the Entity specific Data Management and Personal Data Protection Policy and Guidelines Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.2.1",
+      "description": "Data Management and Personal Data Protection Policy and Guidelines Gap Analysis. To support implementation of the Entity's Data Management and Personal Data Protection Strategy, the Entity shall conduct a Data Management and Personal Data Protection Policy and Guidelines gap analysis, including, at minimum, the following: 1. An analysis of the National Data Management and Personal Data Protection Program's Policies, Standards, and Guidelines 2. Identification and analysis of all data related standards and policies currently published by the Entity or the Regulator of the sector to which the Entity belongs to 3. An analysis of the internal Entity- specific requirements for Data Management and Personal Data Protection Policies and Guidelines 4. A Data Management and Personal Data Protection Policies and Guidelines development plan that clearly indicates the timeline for implementation (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.2.2",
+      "description": "Data Management and Personal Data Protection Policy and Guidelines. The Entity shall develop the Entity specific Data Management and Personal Data Protection Policy and Guidelines, aligned to the National Data Management and Personal Data Protection Policies and Standards. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Governance Domain ID DG Control Name Training and Awareness Control ID DG.3 Control Description As part of the Training and Awareness control, the Entity shall conduct a Data Management and Personal Data Protection training to promote the agenda and enable a data-centric culture Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.3.1",
+      "description": "Data Management and Personal Data Protection Training. The Entity shall conduct Data Management and Personal Data Protection training for all related employees to promote the agenda and enable a data-centric culture. The training shall include, at minimum, the following: 1. Awareness of the national Data Management and Personal Data Protection laws, policies, and standards, and their applicability on the Entity 2. Awareness of the national Data Management and Personal Data Protection programs, and their applicability on the Entity 3. All data management domains as per the National Data Management and Personal Data Protection Framework, addressed to the related Data Management and Personal Data Protection roles. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan - DG.4: Data Management and Personal Data Protection Organization Domain Name Data Governance Domain ID DG Control Name Data Management Organization Control ID DG.4 Control Description As part of the Data Management Organization control, the Entity shall establish a Data Management Office and a Data Management Committee, and identify and appoint the relevant Data Governance roles Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.1",
+      "description": "Data Management Office. The Entity shall establish a Data Management Office to manage the achievement of the national data management agendas at the Entity level. The office responsibilities shall be aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.10",
+      "description": "IT Data Steward. The Entity shall identify and appoint IT Data Stewards to enable the data management agenda from an IT perspective. The IT Data Steward responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.11",
+      "description": "Legal Advisor. The Entity shall identify and appoint a Legal Advisor to support in data related regulatory matters. The Legal Advisor's responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Governance Domain ID DG Control Name Compliance Audit Framework Control ID DG.5 Control Description As part of the Compliance Audit Framework control, the Entity shall establish Data Management and Personal Data Protection Compliance Management practices and document audit results and findings Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.2",
+      "description": "Entity Data Management Committee. The Entity shall establish a Data Management Committee aimed to provide direction and oversight to the overall data management agenda at the Entity level. The committee responsibilities shall be aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.3",
+      "description": "Chief Data Officer. The Entity shall identify and appoint a Chief Data Officer to lead the Data Management and Personal Data Protection agenda. The Chief Data Officer's (CDO) responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.4",
+      "description": "Data Governance Officer. The Entity shall identify and appoint Data Governance Officer to support the data management agenda. The Data Governance Officer's responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.5",
+      "description": "Open Data and Information. The Entity shall identify and appoint an Open Data and Information Access Officer (ODIA) to support the data management agenda. The Open Data and Information Access Officer's responsibilities Access Officer shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.6",
+      "description": "Compliance Officer. The Entity shall identify and appoint a Compliance Officer to audit and monitor the data management agenda. The Compliance Officer’s responsibilities shall be highlighted in a job description and aligned with the National Data Management Office’s with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.7",
+      "description": "Personal Data Protection Officer. The Entity shall identify and appoint a Personal Data Protection Officer (PDPO) to support the Personal Data Protection agenda. The Personal Data Protection Officer's responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.8",
+      "description": "Business Data Executive. The Entity shall identify and appoint Business Data Executives (BDE) to enable the data management agenda for their related domains. The Business Data Executive's responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.4.9",
+      "description": "Business Data Steward. The Entity shall identify and appoint Business Data Stewards to enable the data management agenda for their related domains. The Business Data Steward responsibilities shall be highlighted in a job description and aligned with the responsibilities defined in the “Organizational Manual” published by NDMO (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.1.1",
+      "description": "Data Operations Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Data Operations Plan to manage and orchestrate Data Operations activities. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for the implementation of Data Operations initiatives. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to manage the implementation of Data Operations initiatives (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.1.3",
+      "description": "Data Systems Prioritization. The Entity shall prioritize its information systems based on their business criticality and potential monetary and reputational losses as a consequence of emergency or disaster. The result of the prioritization shall be a list of ranked information systems which shall be used to establish an order of systems recovery in the disaster recovery plan (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.2.1",
+      "description": "Storage and Retention Policy. The Entity shall create a storage and retention policy for the Data Lifecycle Management of the Entity's data. The policy shall cover, at minimum, the following areas of the data lifecycle: 1. Storage conditions ensuring a protection of data in the event of disaster 2. Retention periods of data based on its type, classification, business value and legal requirements 3. Disposal and destruction rules based on the data type and classification 4. Required actions in the event of an accidental permanent loss of data. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Operations Domain ID DO Control Name Database Operations Control ID DO.3 Control Description As part of the Database Operations control, the Entity shall monitor and report database performance and establish and follow processes for providing the Entity's employees an access to databases and for managing the Entity's Storage Configuration Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.5.1",
+      "description": "Compliance Management. The Entity shall establish Data Management and Personal Data Protection Compliance Management practices, and shall accordingly define the following: 1. Scope of the periodic compliance audit exercise 2. Processes to plan for and execute the compliance audits 3. Processes and tools to report compliance audit findings 4. Processes and plans for the remediation and escalation of non-compliance The processes shall be aligned to the National Data Management and Personal Data Protection Compliance Framework (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DG.5.2",
+      "description": "Compliance Audit Results. The Entity shall document results and findings from every compliance audit performed included in an Audit Report. The Audit Report(s) shall have, but not limited to, the following: 1. Compliance or non-compliance to each specification in this document 2. Clearly articulated findings with supporting evidence for each specification 3. Recommendations to remediate each instance of non-compliance 4. Accountable stakeholder for each recommendation, and the target date to complete the recommendation (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    }
+  ]
+}

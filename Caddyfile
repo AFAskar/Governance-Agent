@@ -1,0 +1,26 @@
+# Reverse proxy for the demo deployment.
+#
+# Caddy gets and renews a Let's Encrypt certificate automatically, so the only
+# thing you must supply is a real domain name pointed at this server's IP.
+# Set it in .env as PUBLIC_DOMAIN (e.g. grc-demo.duckdns.org).
+
+{$PUBLIC_DOMAIN} {
+	encode gzip
+
+	# Documents are base64-inflated before they reach the backend, so the
+	# request body is roughly 4/3 the size of the files the user picked.
+	request_body {
+		max_size 200MB
+	}
+
+	reverse_proxy frontend:3000 {
+		# An evaluation runs every LLM call and builds the PDF inside the
+		# request. On a full 12-domain submission that is minutes, not
+		# seconds — a default 60s proxy timeout would kill it mid-demo.
+		transport http {
+			read_timeout 30m
+			write_timeout 30m
+			dial_timeout 30s
+		}
+	}
+}

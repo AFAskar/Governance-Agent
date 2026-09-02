@@ -25,6 +25,10 @@ dependencies = [
     "langgraph>=0.2.0",
     "langchain-core>=0.3.0",
     "reportlab>=4.0.0",
+    # ReportLab has no bidi/shaping of its own; without these Arabic in the
+    # report renders as disconnected letters in reverse order.
+    "arabic-reshaper>=3.0.0",
+    "python-bidi>=0.4.2",
     "python-docx>=1.0.0",
     "python-pptx>=0.6.0",
     "openpyxl>=3.1.0",

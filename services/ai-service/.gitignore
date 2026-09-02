@@ -12,7 +12,13 @@ ENV/
 # Data directories (user uploads and generated content)
 data/
 config/vector_db/
-config/frameworks/
+config/frameworks/*
+
+# The NDI catalog is reference data, not generated user content: without it
+# every domain resolves to no controls and evaluations come back empty. It is
+# ~250KB of public NDMO standards, so it ships with the repo and a deploy needs
+# no extra copy step.
+!config/frameworks/NDI/
 
 # Environment variables
 .env

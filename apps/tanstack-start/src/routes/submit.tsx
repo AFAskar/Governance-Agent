@@ -118,8 +118,8 @@ function RouteComponent() {
         });
 
         if (result.evaluationFailed) {
-          toast.success(
-            "Submission saved. AI evaluation could not be completed — you can retry later.",
+          toast.error(
+            "Submission saved, but the AI evaluation failed. Open it from the admin list and re-run.",
           );
         } else {
           toast.success("Submission created and evaluated successfully!");

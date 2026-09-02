@@ -1,0 +1,180 @@
+{
+  "framework_name": "NDI",
+  "controls": [
+    {
+      "id": "MCM.OE.01",
+      "description": "Systems cataloged in NDC. This metric measures the percentage of systems cataloged by the entity in NDC against the total number of the entity’s critical systems. Note that a system is considered cataloged if its technical metadata is fully scanned and uploaded to NDC. This metric aims to accelerate the documentation of national data assets, allowing consumers to explore the business context of those assets with appropriate technical details, and improving data accessibility and discovery (Priority: P0)",
+      "calculation": "= Number of critical systems that have been cataloged in NDC by the entity / Total number of the entity’s critical systems * 100",
+      "threshold": "70%",
+      "scale": "Unacceptable: ≤ 70% Low: (70%, 75%] Fair: (75%, 80%] Good: (80%, 85%] Excellent: (85%, 90%] Leader: > 90%"
+    },
+    {
+      "id": "MCM.OE.02",
+      "description": "Business attributes defined and linked in NDC. This metric measures the percentage of business attributes that are defined and linked by the entity to technical columns in NDC against the total number of business attributes that the entity is required to define in NDC. This metric aims to accelerate the documentation of national data assets, allowing consumers to explore the business context of those assets with appropriate technical details, improving data accessibility and discovery (Priority: P0)",
+      "calculation": "= Average score for all the entity’s systems, where the score of one system is calculated as: = Number of system business attributes defined and linked by the entity to technical columns in NDC / Total number of system business attributes required to be defined by the entity * 100",
+      "threshold": "70%",
+      "scale": "Unacceptable: ≤ 70% Low: (70%, 75%] Fair: (75%, 80%] Good: (80%, 85%] Excellent: (85%, 90%] Leader: > 90%"
+    },
+    {
+      "id": "MCM.OE.03",
+      "description": "Reporting assets defined in NDC. This metric measures the percentage of reporting assets (KPIs/metrics) that are defined in NDC by the entity against the total number of reporting assets that the entity is required to document in NDC. This metric helps in documenting the important analytics assets that will be made discoverable for other consumers to leverage for their analysis and decision-making. This, in turn, promotes the reusability of those authentic and verified assets to reduce the time to market for consumers (Priority: P0)",
+      "calculation": "= Number of reporting assets defined in NDC by the entity / Total number of required reporting assets to be defined in NDC by the entity * 100",
+      "threshold": "70% 19 مﺎﻋ 18/11/2025",
+      "scale": "Unacceptable: ≤ 70% Low: (70%, 75%] Fair: (75%, 80%] Good: (80%, 85%] Excellent: (85%, 90%] Leader: > 90%"
+    },
+    {
+      "id": "MCM.OE.04",
+      "description": "Business attributes linked to attribute class standards in NDC. This metric measures the percentage of business attributes linked to attribute class standards in NDC by the entity against the total number of business attributes that are defined by that entity. This metric aims to accelerate the efforts for standardizing national data assets, improving the overall quality of data. It will ultimately help in achieving seamless data sharing and interoperability with full trust across business processes, applications, and systems (Priority: P0)",
+      "calculation": "= Number of business attributes linked to attribute class standards in NDC by the entity / Total number of business attributes defined in NDC by the entity * 100",
+      "threshold": "70%",
+      "scale": "Unacceptable: ≤ 70% Low: (70%, 75%] Fair: (75%, 80%] Good: (80%, 85%] Excellent: (85%, 90%] Leader: > 90%"
+    },
+    {
+      "id": "MCM.OE.05",
+      "description": "Accuracy of business attribute relationships in NDC. This metric measures the percentage of issues reported on the business attributes that are incorrectly linked to other metadata objects in NDC (e.g., business attributes linked to incorrect attribute class standards, incorrect technical columns, or incorrect measures). This metric aims to enhance the accuracy of the metadata, which in turn increases the quality and reliability of consumer analyses and decision-making (Priority: P0)",
+      "calculation": "= Number of business attributes incorrectly linked by the entity in NDC / Total number of business attributes defined in NDC by the entity * 100",
+      "threshold": "10%",
+      "scale": "Unacceptable: > 10% Low: (8%, 10%] Fair: (6%, 8%] Good: (4%,6%] Excellent: (2%, 4%] Leader: <= 4%"
+    },
+    {
+      "id": "RMD.OE.01",
+      "description": "Publishing reference entities. This metric measures the percentage of standardized reference entities (tables) that are published by the entity on the GSB against the number of reference entities (produced by that entity) that are required by government entities to perform their business functions. This metric aims to accelerate the standardization of reference values, which is required by different business processes for trusted reference data interoperability (Priority: P0)",
+      "calculation": "= Number of published reference entities by the entity on GSB / Total number of reference entities that are expected to be published by the entity * 100",
+      "threshold": "90%",
+      "scale": "Unacceptable: <= 90% Low: (90%, 92%] Fair: (92%, 94%] Good: (94%, 96%] Excellent: (96%, 98%] Leader: > 98%"
+    },
+    {
+      "id": "RMD.OE.02",
+      "description": "Time taken to publish new reference entities. This metric measures the average time it takes for the entity to publish new reference entities requested by other entities on GSB. This metric aims to improve the overall availability of reference values, fostering agility for building accurate business services, analysis, and reference data interoperability (Priority: P0)",
+      "calculation": "= Sum of total time taken by the entity to publish its reference entities on GSB (in days) / Total number of reference entities that are published by the entity",
+      "threshold": "30 Days",
+      "scale": "Unacceptable: > 30 days Low: (25 days, 30 days] Fair: (20 days, 25 days] Good: (15 days, 20 days] Excellent: (10 days, 15 days] Leader: <= 10 days"
+    },
+    {
+      "id": "RMD.OE.03",
+      "description": "Time taken to fix reported issues in reference entities. This metric measures the average time it takes for the entity to resolve an issue reported on its reference entities that are published on GSB. This metric aims to minimize and contain data quality issues across government systems and applications. It also helps maintain the quality of the outcomes pertaining to analyses, business processes, and data interoperability, as incorrect or missing reference values will negatively impact consumer experience and trust (Priority: P0)",
+      "calculation": "= Sum of time taken by the entity to resolve a reported issue related to its reference entities (in days) / Total number of reported issues related to the entity’s reference entities published on GSB",
+      "threshold": "5 Days",
+      "scale": "Unacceptable: > 5 days Low: (4 days, 5 days] Fair: (3 days, 4 days] 23 مﺎﻋ 18/11/2025"
+    },
+    {
+      "id": "MCM.1.1",
+      "description": "Data Catalog Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Data Catalog Plan to manage the implementation of the Entity’s Data Catalog. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for the implementation of the Data Catalog automated tool. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to manage the implementation of the Data Catalog automated tool (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.1.2",
+      "description": "Data Sources Prioritization. The Entity shall prioritize data sources to be included in the Data Catalog, along with the definition of their business and technical metadata (or metadata structure) (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.1.3",
+      "description": "Metadata Architecture. The Entity shall develop and document a target metadata architecture. The target metadata architecture shall include (but not limited to), the following: 1. Metadata sources - the Entity's data sources that are sources of metadata for the Data Catalog 2. Metadata repository - the Data Catalog as the Entity's central metadata repository 3. Metadata flows - a definition of metadata flows between the metadata sources and the metadata repository 4. Metadata model - a metadata model used by the Entity's Data Catalog. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Catalog and Metadata Domain ID MCM Control Name Policy and Guidelines Control ID MCM.2 Control Description As part of the Policy and Guidelines control, the Entity shall establish and follow clear processes for an approval of connecting the Data Catalog to the Entity's data sources and for providing the Entity's employees an access to the Data Catalog Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.4.3",
+      "description": "Metadata Structure. The Entity shall develop the Metadata structure according to the National Data Management Office's Data Catalog Guidelines. The Metadata structure defines Business Metadata attributes that are required to be populated in the Data Catalog. The Entity can augment the mandated Metadata structure with additional attributes based on the Entity's requirements (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.4.5",
+      "description": "Metadata Quality. The Entity shall establish and follow a clear process for identifying and addressing quality issues with the Metadata. The Metadata quality management process shall include reporting of identified quality issues and development of remediation actions within defined SLAs. The process shall be implemented as a workflow in the Data Catalog automated tool and by following the National Data Management Office's Data Catalog Guidelines (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.1.1",
+      "description": "Reference and Master Data Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Reference and Master Data Plan to implement and manage activities aiming to improve its Reference and Master Data Management Capabilities. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for the implementation of the Entity's Reference and Master Data Management. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to manage the implementation of the activities included in the Roadmap (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.1.2",
+      "description": "Reference and Master Data Identification and Prioritization. The Entity shall identify its reference and master data. The identification shall cover, at minimum, the following: 1. Identification of Master Data objects (e.g. customer, product, citizen) used across the Entity 2. Identification of Reference Data Objects required by instances of identified Master Data Objects 3. Identification of data sources and applications where Reference and Master Data Objects are created, read, updated and deleted. The Entity shall logically group and prioritize its identified Reference and Master Data Objects for determining a phased approach to implementation of target RMD Information Architecture (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.1.3",
+      "description": "Reference Data Categorization. The Entity shall categorize its identified Reference Data Objects as either internal or external datasets: - Internal - Any reference data the Entity owns, manages and is Single Source of Truth across government - External - Any reference data owned and managed by other Entities across government or considered standard industry data coming from external organizations such as ISO. An identification of internal and external reference data used by the Entity is as an input for standardization activities of Reference Data at the national Government level (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.1.4",
+      "description": "Master Data Categorization. The Entity shall categorize its identified Master Data objects as either internal or external: - Internal - Any Master Data Objects the Entity owns, manages and is Single Source of Truth across government - External - Any Master Data Objects owned and managed by other Entities across government. An identification of internal and external Master Data Objects used by the Entity is as an input for standardization activities of Master Data at the national Government level. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Reference and Master Data Management Domain ID RMD Control Name Architecture Control ID RMD.2 Control Description As part of the Architecture control, the Entity shall develop and document its requirements for effectively managing its Reference and Master Data, evaluate and select a Reference and Master Data Hub architecture design, develop a conceptual and an information architectures for its target Reference and Master Data environment, and document the technical requirements for its Reference and Master Data Hub platform Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.2.1",
+      "description": "RMD Requirements. Based on the Data Management and Personal Data Protection Strategy, the Entity shall establish and document its requirements for effectively managing the Entity's Reference and Master Data across the data lifecycle. The requirements for Reference and Master Data shall cover, at minimum, the following: 1. Processes and related roles for managing the Entity's Reference and Master Data Objects across the data lifecycle from creation to archiving 2. Rules for accurate matching and merging Master Data Records from different data sources to create Golden Record 3. Requirements for provisioning of Master Data Golden Records to consuming applications 4. Requirements for provisioning of Reference Data Objects to consuming applications 5. Data quality requirements for Reference and Master Data Objects to be leveraged an input for Initial Data Quality Assessment detailed in Data Quality domain (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.2.2",
+      "description": "RMD Data Hub Design. The Entity shall evaluate and select Reference Master Data Hub architecture design to effectively manage its Reference and Master Data Objects. The Entity shall determine, based on its RMD Requirements, which of the following Data Hub architecture implementation patterns is most suitable for managing its Master Data Objects: 1. Registry Hub - Master Data Records remains in its respective source systems. The Hub stores an index of Master Data with key identifiers only. Creating and modifying master data is maintained in the Master Data sources, the Hub provides links to Master Data Records in data sources 2. Repository Hub - Master Data Records are copied from source systems, matched and consolidated into the Data Hub. Master Data is pushed out (one-way synchronization) to the Data Hub from existing sources. Creating and modifying of Master Data Records is maintained in the Master Data sources 3. Coexistence Hub - Two-way synchronization is added to the Repository Hub design to ensure both source and Hub maintain exactly the same replicas of Master Data Records over time. Creating and modifying of Master Data Records is maintained in the respective data sources 4. Centralized Hub - Master Data Records are migrated to the Data Hub. The Hub becomes the exclusive, single provider of Master Data Records with creating and modifying performed exclusively in the Hub. All consumer applications use the Hub exclusively for their Master Data. Regarding Reference Master Data Objects, the Hub Design shall support Centralized management of Reference Data - the Hub acting as a single provider of Reference Data with creating and modifying performed exclusively in the Hub. All consumer applications use the Hub as a provider of Reference Data (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.2.3",
+      "description": "RMD Conceptual Architecture. The Entity shall develop and document a conceptual architecture for its target Reference and Master Data environment per the Entity's selected Data Hub architecture design. The conceptual architecture shall indicate foundational building block components and high-level capabilities associated with the components. The conceptual 'RMD' architecture shall consist, at minimum, of the following: 1. Architecture Description - Description of the overall architecture concept defined 2. Components Definitions and Descriptions - Building blocks (the Data Hub, data sources, consuming applications etc.) of RMD conceptual architecture with description of their purpose 3. Conceptual Architecture Diagram- High level view of how components work together to address the Entity's RMD requirements (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "RMD.4.1",
+      "description": "RMD Stewardship Coverage. The Entity shall assign Business and IT Data Stewards to all identified Reference and Master Data Objects (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.2.1",
+      "description": "Data Access Approval. The Entity shall establish and follow a clear process for the approval of connecting the Data Catalog tool to the Entity's Data Sources (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.2.2",
+      "description": "Metadata Access Approval. The Entity shall establish and follow a clear process for providing the Entity's employees an access to the Data Catalog automated tool. The process shall implement role-based access to the Data Catalog, which includes the creation of access groups (for example read only, read and update, and administrator) and an assignment of the Data Catalog's users to these groups. The Data Catalog access groups shall be defined based on access rights to the Metadata and scope of the Metadata. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Catalog and Metadata Domain ID MCM Control Name Training and Awareness Control ID MCM.3 Control As part of the Training and Awareness control, the Entity shall conduct the Data Catalog trainings, accelerate adoption and increase usage of its Data Catalog Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.3.1",
+      "description": "Data Catalog Training. The Entity shall conduct the Data Catalog training for every employee having direct need to discover, analyze or administer Metadata to promote the proper use of the Data Catalog. The training shall include, at minimum, the following: 1. Introduction of the Data Catalog concept and its benefits 2. Introductory and advanced tutorials about the Data Catalog automated tool and its functionalities 3. Hands-on exercises of the Data Catalog automated tool based on practical use cases (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "MCM.4.1",
+      "description": "Metadata Stewardship Coverage. The Entity shall assign Business and IT Data Stewards to all the Metadata registered within the Data Catalog. Data Stewards assigned to the Metadata shall be continuously updated and shall reflect the most current Data Stewards' assignments within the Entity (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    }
+  ]
+}

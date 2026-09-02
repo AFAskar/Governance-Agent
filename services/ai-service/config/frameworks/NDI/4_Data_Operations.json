@@ -1,0 +1,180 @@
+{
+  "framework_name": "NDI",
+  "controls": [
+    {
+      "id": "DO.OE.01",
+      "description": "Delay in response time of GSB APIs. This metric measures the delay in the response time of the entity’s GSB APIs after subtracting the time taken by the GSB platform. This metric only considers the actual processing time incurred by the entity after receiving a request from the consumer. This metric aims to improve business process integration and interoperability, and hence enhance the consumer experience and application resilience (Priority: P0)",
+      "calculation": "= Average delay percentage for all the entity’s APIs, where the delay percentage of one API is calculated as: = Sum of delay in response time of all API’s calls / (Number of calls for an API * expected response time of the API) * 100 where the delay in response time of an API call is calculated as follows: = Response time of the API – GSB latency – expected response time of the API",
+      "threshold": "10%",
+      "scale": "Unacceptable: > 10% Low: (8%, 10%] Fair: (6%, 8%] Good: (4%, 6%] Excellent: (2%, 4%] Leader: <= 2%"
+    },
+    {
+      "id": "DO.OE.02",
+      "description": "Responsiveness of GSB API calls. This metric measures the responsiveness of the entity APIs that are published on GSB by calculating the percentage of failed API calls invoked by the consumer applications on the APIs against the total number of API calls. Note that a failed API call refers to the scenario where the consumer application receives an error of any type from the called API. This metric aims to improve the resilience of GSB APIs, hence increasing the efficiency of business functions and processes, and enhancing the consumer experience (Priority: P0)",
+      "calculation": "= Average responsiveness score for all entity’s APIs, where the responsiveness of one API is calculated as follows: = (Total number of the API calls – Number of the API calls failed due to operational issues from the entity) / Total number of the API calls * 100",
+      "threshold": "94%",
+      "scale": "Unacceptable: <= 94% Low: (94%, 95%] Fair: (95%, 96%] Good: (96%, 97%] Excellent: (97%, 98%] Leader: > 98%"
+    },
+    {
+      "id": "DO.OE.03",
+      "description": "Responsiveness of the integration solution with NDL. This metric measures the responsiveness of the integration solution implemented by the entity by calculating the percentage of operational issues encountered by NDL against the number of data pipeline executions with the respective entity. Note that an execution is considered failed only if it is caused by an operational issue from the entity. This metric will be measured by NDL for each source entity with which NDL has operated data pipelines. 29 مﺎﻋ 18/11/2025 (Priority: P0)",
+      "calculation": "= Average responsiveness score for all entity’s systems, where the responsiveness score of one system is calculated as follows: = (Total number of the system’s data pipeline executions - Number of failed pipeline executions caused by operational issues from the entity) / Total number of the system’s data pipeline executions * 100",
+      "threshold": "94%",
+      "scale": "Unacceptable: <= 94% Low: (94%, 95%] Fair: (95%, 96%] Good: (96%, 97%] Excellent: (97%, 98%] Leader: > 98%"
+    },
+    {
+      "id": "DAM.1.1",
+      "description": "Data Architecture and Modeling Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Data Architecture and Modeling Plan to implement and manage activities aiming to improve its Data Architecture Capabilities. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for the implementation of the target Data Architecture Capabilities. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to manage the implementation of the activities included in the Roadmap. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Architecture and Modeling Domain ID DAM Control Name Policy and Guidelines Control ID DAM.2 Control As part of Policy and Guidelines control, the Entity shall document and publish a Data Architecture and Modeling Policy Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.2.1",
+      "description": "Data Architecture and Modeling Policy. The Entity shall document and publish a Data Architecture and Modeling Policy to guide the development of the target data architecture. The policy shall cover, at minimum, the following: 1. Target Data Architecture shall address strategic requirements defined within the Entity's Data Management and Personal Data Protection Strategy 2. Target Data Architecture shall be developed in conjunction with the development of the Entity's overall Enterprise Architecture 3. Target Data Architecture shall adopt a widely used Enterprise Architecture Framework, e.g. TOGAF, Zachmann 4. The Entity's Data Models shall be monitored regularly and kept up to date. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Architecture and Modeling Domain ID DAM Control Name Data Architecture Framework Definition Control ID DAM.3 Control Description As part of the Data Architecture Framework Definition control, the Entity shall define its current and target state Data Architecture and conduct a gap analysis between them, identify and document its requirements for developing a Data Lake environment and define the partitioning strategy for its target state Data Architecture Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.3.1",
+      "description": "Current State Architecture. The Entity shall define its 'baseline' current state Data Architecture to support the development of its target state Data Architecture. The current state Data and Technical architecture should cover, at minimum, the following: 1. Data Model - The Entity's current Enterprise Data Model at Conceptual, Logical and Physical level. Each data model level shall cover, at minimum: 1a. Conceptual Model - Key business entities for the Entity with their relationships divided into business subject areas 1b. Logical Model - Conceptual model extended with attributes for business entities and addition of less significant entities and relationships 1c. Physical Model - Physical representation (physical tables names, attributes names, data types, primary and foreign keys etc.) of logical data models within the key System Components 2. Key Processes - Essential current processes involved in ongoing business operations and decision making 3. Key System Components - Essential current applications, data storages, data processing platforms and data analytics solutions involved in key processes 4. Data Flows and Lineage - Visualized current data movement across the key processes and system components (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.1.1",
+      "description": "Data Operations Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Data Operations Plan to manage and orchestrate Data Operations activities. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for the implementation of Data Operations initiatives. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to manage the implementation of Data Operations initiatives (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.1.3",
+      "description": "Data Systems Prioritization. The Entity shall prioritize its information systems based on their business criticality and potential monetary and reputational losses as a consequence of emergency or disaster. The result of the prioritization shall be a list of ranked information systems which shall be used to establish an order of systems recovery in the disaster recovery plan (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.2.1",
+      "description": "Storage and Retention Policy. The Entity shall create a storage and retention policy for the Data Lifecycle Management of the Entity's data. The policy shall cover, at minimum, the following areas of the data lifecycle: 1. Storage conditions ensuring a protection of data in the event of disaster 2. Retention periods of data based on its type, classification, business value and legal requirements 3. Disposal and destruction rules based on the data type and classification 4. Required actions in the event of an accidental permanent loss of data. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Operations Domain ID DO Control Name Database Operations Control ID DO.3 Control Description As part of the Database Operations control, the Entity shall monitor and report database performance and establish and follow processes for providing the Entity's employees an access to databases and for managing the Entity's Storage Configuration Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.3.2",
+      "description": "Target State Architecture. The Entity shall define and develop a future state target data architecture by following the Entity's Data Architecture and Modeling Policy. The target Data Architecture shall cover, at minimum, the following: 1. Data Model - the Entity's target Enterprise Data Model at Conceptual, Logical and Physical level. Each data model level shall include, at minimum: 1a. Conceptual Model - key business entities for the Entity with their relationships divided into business subject areas 1b. Logical Model - conceptual model extended with attributes for business entities and addition of less significant entities and relationships 1c. Physical Model - physical representation (physical tables names, attributes names, data types, primary and foreign keys etc.) of logical data models within the key System Components 2. Key Processes - Essential target processes involved in ongoing business operations and decision making 3. Key System Components - Essential target applications, data storages, data processing platforms and data analytics solutions involved in key processes 4. Data Flows and Lineage - Visualized target data movement across the key processes and system components (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.3.3",
+      "description": "Future State Gap Assessment. The Entity shall conduct and document a gap analysis between the Entity's current state architecture and the defined target state architecture. The gap analysis shall be used as an input for definition of initiatives required to implement target state data architecture (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.3.4",
+      "description": "Big Data Considerations. The Entity shall identify and document its requirements for developing a Data Lake environment using a vendor-neutral Big Data Reference Architecture Framework (e.g. NIST) and incorporating Big Data architecture components into its overall target Data Architecture design. The Data Lake requirements shall, at minimum, address requirements for: 1. Ingest - Ingesting and converting semi- and unstructured datasets into a structured form 2. Infrastructure - Networking, computing and storage needs handling large, diverse formats of data 3. Platform - Distributed storage solution providing distributed processing capabilities (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.3.5",
+      "description": "Data Processing Considerations. The Entity shall employ and document a partitioning strategy for its target state Data Architecture for efficient processing of various data volumes, variety and velocity of data and optimizing data processing and systems performance. The partitioning strategy should cover both real-time and batch processing operations. Version History June 2020 Version 1.0 Dependencies - DAM.1: Plan - DAM.2: Policy & Guidelines Domain Name Data Architecture and Modeling Domain ID DAM Control Name Data Modeling Definition Control ID DAM.4 Control Description As part of the Data Modeling Definition control, the Entity shall select diagramming method for documenting the structure, relationships and notations of business entities and select a toolset of technologies for the implementation of Data Architecture and Modeling initiatives within the Entity Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.4.1",
+      "description": "Model Representation. The Entity shall select and follow a diagramming method (e.g. UML) for documenting the structure, relationships and notations of business entities at the conceptual, logical and physical level that can be used throughout the Software Development Lifecycle (SDLC) (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.4.2",
+      "description": "Tools and Technologies. The Entity shall select and implement a toolset of technologies for the design, development and implementation of data architecture and modeling initiatives within the Entity. The Entity's toolset shall cover, at minimum, the following: 1. Data Architecture Design - Visually representing data and system components along with data flow diagramming 2. Data Modeling - Drawing functionality to create and modify data and system objects, attributes and relationships, and perform reverse engineering of existing data models 3. Data Lineage - Capturing and maintaining of data flows between systems to enable an impact analysis. Version History June 2020 Version 1.0 Dependencies - DAM.1: Plan - DAM.2: Policy & Guidelines Domain Name Data Architecture and Modeling Domain ID DAM Control Name Data Lifecycle Management Control ID DAM.5 Control Description As part of the Data Lifecycle Management control, the Entity shall establish an architecture change management process and follow Data Architecture checkpoints incorporated into its SDLC process Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.5.1",
+      "description": "Change Management. The Entity shall establish and follow an architecture change management process to review, approve and implement changes to current and/or target state Data Architectures. The scope of architecture changes shall include, at minimum, the following: 1. Requests for new Data Architecture and Data Modeling initiatives 2. Modifications to Statement of Architecture Work documents for existing initiatives (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.5.2",
+      "description": "Data Architecture Checkpoints. The Entity shall have Data Architecture checkpoints incorporated into its Software Development Lifecycle (SDLC) process. The checkpoints shall include, at minimum, the following: 1. Investigation of possibilities for reusage of existing Data Architecture components to address business requirements 2. Validation of conformance of created data models with the Entity's Enterprise Data Model 3. Verification if project implies any changes required to the Entity's overall Enterprise Data Model. Version History June 2020 Version 1.0 Dependencies - DAM.1: Plan - DAM.3: Data Architecture Framework Definition - DG.4: Data Management & Privacy Organization Domain Name Data Architecture and Modeling Domain ID DAM Control Name Performance Management Control ID DAM.6 Control Description As part of the Performance Management control, the Entity shall develop key metrics to regularly measure the Entity's Data Architecture and Modeling capabilities Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.6.1",
+      "description": "Data Architecture and Modeling KPIs. The Entity shall establish key performance indicators (KPIs) to measure the state of its Data Architecture and Modeling capabilities. KPIs shall include, at minimum, metrics to track progress in transforming current state data architecture towards a target state data architecture. Version History June 2020 Version 1.0 Dependencies - DAM.3: Data Architecture Framework Definition - DAM.4: Data Modeling Definition - DAM.5: Data Lifecycle Management Domain Name Data Architecture and Modeling Domain ID DAM Control Name Artifacts Control ID DAM.7 Control As part of the Artifacts control, the Entity shall store and maintain its Data Architecture documentation materials Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DAM.7.1",
+      "description": "Data Architecture and Modeling Register. The Entity shall store in a register its data and technical architecture project, reference documentation materials and data model designs. Version History June 2020 Version 1.0 Dependencies - DAM.3: Data Architecture Framework Definition - DAM.4: Data Modeling Definition Data Architecture and Modeling Domain References - DAMA DMBOK 2nd Edition (Mosley and Brackett, 2017) - The TOGAF® Standard, Version 9.2 - NIST.SP.1500-5 Big Data Interoperability Framework: Architectures White Paper Survey (NIST.gov, 2015) - Data Architecture Playbook (Accenture, 2017) - Accenture Data Management Framework (Accenture, 2018) Data Architecture and Modeling Domain References Traini Awar ng and eness Integ Solutio Lifec ration n Dev. ycle Data S Req haring uests Data S Agree haring ments Perfor Manag mance ement Domain Name Data Sharing and Interoperability Domain ID DSI Control Name Plan Control ID DSI.1 Control Description As part of the Plan control, the Entity shall perform an Initial Data Integration Assessment and create a Target Data Integration Architecture and a Data Integration Plan Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.1.2",
+      "description": "Data Storage Forecasting. The Entity shall conduct periodic forecasts of a storage capacity needed to support future business requirements of the Entity based on: 1. Observation of historical storage trends 2. Assessment of a performance of the Entity's applications 3. The Entity's roadmap for applications' development. Forecasts of a storage capacity shall include, at minimum the following: 1. Prediction of the Entity's future storage capacity needs 2. Estimation of the budget for future storage acquisitions (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.1.4",
+      "description": "Database Technology Evaluation. The Entity shall establish and follow a clear process for evaluation and selection of the Database Management System Software. The process' evaluation factors shall include (but not limited to) the following factors: 1. Total cost of ownership including, at minimum, licensing, support, training, hardware 2. Availability of resources skilled in the technology, both internally and in the market 3. Presence of related software tools in the Entity 4. Volume and velocity limits of the technology 5. Reliability provided by the technology 6. Scalability of the technology 7. Security controls provided by the technology Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Operations Domain ID DO Control Name Policy and Guidelines Control ID DO.2 Control As part of the Policy and Guidelines control, the Entity shall create a storage and retention policy for the Data Lifecycle Management of all stored data Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.3.1",
+      "description": "Database Monitoring. The Entity shall monitor and report database performance on regular basis including (but not limited to) the following: 1. Capacity - size of the unused storage 2. Availability - accessibility of databases to users 3. Queries execution performance - query execution times and errors 4. Changes tracking - tracking of database changes for root cause analysis (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.3.2",
+      "description": "Database Access Control. The Entity shall establish and follow a clear process for providing the Entity's employees an access to the databases. The process shall implement a role-based access to the databases which includes an assignment of roles to Entity's employees and granting permissions to the roles. Roles shall be defined by following the data classification domain standards (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.3.3",
+      "description": "Storage Configuration Management. The Entity shall establish and follow a clear process for managing its Storage Configuration. The process shall include (but not limited to) the following steps: 1. Configuration identification - identification and documentation of the attributes defining the database system configuration 2. Configuration change control - implementation of changes in the defined database configuration 3. Configuration status accounting - tracking of implemented changes in the configuration 4. Configuration audits - ensuring that the installed database configuration is consistent with the documented configuration (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DO.3.5",
+      "description": "Service Level Agreements. The Entity shall establish and implement database performance Service Level Agreements specifying the Entity's requirements for the databases performance, data availability and recovery. The Entity's database performance Service Level Agreements shall include (but not limited to) the following: 1. Timeframes for database's availability for users 2. Maximum allowable execution time for selected application transactions 3. Escalation actions to be taken when the SLA is not met Version History June 2020 Version 1.0 Dependencies - DO.1: Plan Domain Name Data Operations Domain ID DO Control Name Business Continuity Control ID DO.4 Control Description As part of the Business Continuity control, the Entity shall establish and follow a disaster recovery plan and processes for the data backup and recovery and the implementation of database changes to Production Environments Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    }
+  ]
+}

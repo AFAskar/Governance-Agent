@@ -30,16 +30,24 @@ COPY services/ai-service/ ./
 RUN uv sync --no-dev
 
 # Download HuggingFace model during build to cache it in the image
-# This prevents runtime downloads and makes the container start faster
+# This prevents runtime downloads and makes the container start faster.
+#
+# Load through SentenceTransformer rather than snapshot_download: it fetches
+# only the files the torch backend actually needs, skipping the onnx/openvino
+# copies of the same weights that snapshot_download would pull (those are
+# gigabytes we never load). It also fails the build here, rather than at
+# runtime, if the gated model or the token is wrong.
 ARG HF_TOKEN
 ENV HF_TOKEN=${HF_TOKEN}
 ENV HF_HUB_OFFLINE=0
+ENV HF_HOME=/opt/hf-cache
 
 RUN /app/.venv/bin/python -c "import os; os.environ['HF_HUB_OFFLINE']='0'; \
-    from huggingface_hub import login, snapshot_download; \
-    token = os.getenv('HF_TOKEN'); \
+    from huggingface_hub import login; \
+    from sentence_transformers import SentenceTransformer; \
+    token = os.getenv('HF_TOKEN') or None; \
     login(token=token) if token else None; \
-    snapshot_download('google/embeddinggemma-300m', token=token); \
+    SentenceTransformer('google/embeddinggemma-300m', token=token); \
     print('✓ Model cached successfully')"
 
 # Remove unnecessary files
@@ -58,30 +66,33 @@ ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV HF_HUB_OFFLINE=1
+ENV HF_HOME=/opt/hf-cache
 
-# Install runtime dependencies only
+# Install runtime dependencies only.
+# fonts-hosny-amiri (~1.5MB) gives the PDF report a face with Arabic glyphs;
+# Helvetica has none, so Arabic rationales come out as empty boxes without it.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
+    fonts-hosny-amiri \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the HuggingFace cache from builder
-COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
-
-# Copy only the virtual environment and application code
-COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/src /app/src
-COPY --from=builder /app/run.py /app/run.py
-COPY --from=builder /app/main.py /app/main.py
-
-# Create non-root user and set ownership.
+# Create the user before copying, so every COPY can set its final ownership.
+# A later `chown -R` would rewrite each file into a new layer, duplicating the
+# torch install and the model weights in the image.
 # data/ and config/ are created here so named volumes mounted on them
 # inherit appuser ownership instead of defaulting to root.
 RUN useradd -m -u 1000 appuser && \
     mkdir -p /app/data /app/config && \
-    chown -R appuser:appuser /app && \
-    mkdir -p /home/appuser/.cache && \
-    cp -r /root/.cache/huggingface /home/appuser/.cache/ && \
-    chown -R appuser:appuser /home/appuser/.cache
+    chown appuser:appuser /app /app/data /app/config
+
+# Model weights land in one place only (HF_HOME), readable by appuser.
+COPY --from=builder /opt/hf-cache /opt/hf-cache
+
+# The venv and source are read-only at runtime, so they stay root-owned.
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/src /app/src
+COPY --from=builder /app/run.py /app/run.py
+COPY --from=builder /app/main.py /app/main.py
 
 USER appuser
 

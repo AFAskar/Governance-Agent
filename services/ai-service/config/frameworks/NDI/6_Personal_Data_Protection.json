@@ -1,0 +1,75 @@
+{
+  "framework_name": "NDI",
+  "controls": [
+    {
+      "id": "PDP.1.1",
+      "description": "Personal Data Protection Initial Assessment. The Entity shall perform an initial Personal Data Protection Assessment to evaluate the current state of the Personal Data Protection environment. The assessment shall include, at minimum, the following: 1. Identification of types of personal data being collected 2. Location and method of storage of personal data 3. Current processing and uses of the personal data 4. Privacy challenges to meet compliance with the National Data Management Office's Personal Data Protection Regulations (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.1.2",
+      "description": "Personal Data Protection Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Personal Data Protection Plan to address both the strategic and operational privacy requirements of the National Data Management Office's Personal Data Protection Regulations. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for achieving and maintaining the Entity's compliance with the National Data Management Office's Personal Data Protection Regulations. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to achieve and maintain the Entity's compliance with the National Data Management Office's Personal Data Protection Regulations. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Personal Data Protection Domain ID PDP Control Name Training and Awareness Control ID PDP.2 Control Description As part of the Training and Awareness control, the Entity shall conduct a Personal Data Protection training to promote a Personal Data Protection-centric culture Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.2.1",
+      "description": "Personal Data Protection Training. The Entity shall conduct the Personal Data Protection training for every employee to promote a Personal Data Protection-centric culture in accordance with the Entity-specific and national privacy regulations. The training shall include, at minimum, the following: 1. Importance of Personal Data Protection and the Impacts and consequences to the Entity and / or Data Subject 2. Definition of Personal Data 3. Data Subject Data Rights 4. Entity and Data Subject Responsibilities 5. Notifications as for when the Entity and / or Data Subject should be notified and how to handle inquiries about personal data collection, processing and sharing. Version History June 2020 Version 1.0 Dependencies - PDP.1: Plan Domain Name Personal Data Protection Domain ID PDP Control Name Data Breach Control ID PDP.3 Control As part of the Data Breach control, the Entity shall establish a Data Breach Process Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.3.2",
+      "description": "Data Breach Management Process. The Entity shall develop and document breach management procedures to directly manage and address the privacy violations and to set the functions and responsibilities for the affected work team, including cases in which the Regulatory Authority is notified once a breach has been identified. The breach management process shall include, at minimum, the following: 1. Conducting an incident review by the Data Controller with the Regulatory Authority 2. Formulating an immediate response to the incident by the Data Controller and / or Data Processor 3. Implementing the permanent corrective actions when issued by the Regulatory Authority 4. Conducting testing of the implemented corrective actions to validate personal data protection solution(s). Refer to the National Data Management Office's Personal Data Protection Regulations, as well as NCA’s guidance for more detailed requirements. Version History June 2020 Version 1.0 Dependencies - PDP.1: Plan Domain Name Personal Data Protection Domain ID PDP Control Name Data Lifecycle Management Control ID PDP.4 Control Description As part of the Data Lifecycle Management control, the Entity shall establish a Privacy Notice, Consent Management framework, its Data Subject Rights Processes, and conduct internal audits Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.3.1",
+      "description": "Data Breach Notification. The Entity's Data Controller or Data Processor handling personal data shall, in the event it is determined that personal data has been compromised, notify the Regulatory Authority within the allotted timeframe specified within the National Data Management Office's Personal Data Protection Regulations. The allotted timeframe for notification is 72 hours. Refer to the National Data Management Office's Personal Data Protection Regulations for more detailed requirements (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.4.1",
+      "description": "Privacy Notice and Consent Management. The Entity shall establish, at minimum, the following Privacy Notice and Consent Management components: 1. Define and document its processes for providing Data Subjects with notice and requesting consent at all points along the data lifecycle where personal data is collected as prescribed by the National Data Management Office's Personal Data Protection Regulations 2. The Entity shall provide all possible options to Data Subject and his (implicit / explicit) approval shall be obtained regarding the collection, use or disclosure of personal data 3. The Entity shall document and make available a Privacy Notice for Data Subjects to review before or at the time the Entity requests permission to collect personal data 4. In the event the Data Controller maintains a presence on internet, a hyperlink to privacy notice must be maintained. The notice must be made available to the National Data Management Office for inspection upon request. Refer to the NMDO Personal Data Protection Regulations for more detailed requirements (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.4.2",
+      "description": "Data Subject Rights. The Entity shall establish and document its Data Rights Management processes to support the rights of Data Subjects, in accordance with the National Data Management Office's Personal Data Protection Regulations, whereby the Data Subject has a: 1. Right to be informed 2. Right to access 3. Right to rectification 4. Right to erasure 5. Right to object 6. Right to restrict processing 7. Right to data portability The Entity should inform the Data Subjects about their rights and provide possible means by which Data Subjects requests are submitted, responded to and tracked. Refer to the National Data Management Office's Personal Data Protection Regulations for more detailed requirements (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.4.4",
+      "description": "Compliance Monitoring and Audit. The Entity shall conduct internal audits to monitor compliance with privacy regulations and document its findings in a report presented to the Data Protection Officer. In cases of non- compliance, corrective actions should be taken with a notification to the Regulatory Authority and the National Data Management Office and documented within the audit findings report. Refer to the National Data Management Office's Personal Data Protection Regulations for more detailed requirements. Version History June 2020 Version 1.0 Dependencies - PDP.1: Plan - PDP.3: Personal Data Protection Breach - DG.4: Data Management and Personal Data Protection Organization Domain Personal Data Protection Domain ID PDP Name Control Name Artifacts Control ID PDP.5 Control As part of the Artefacts control, the Entity shall document in a register its compliance records Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.5.1",
+      "description": "Personal Data Protection Register. The Entity shall document in a register compliance records for a reasonable period of time, but not less than 24 months, and shall make those records available when requested by the National Data Management Office as defined in the National Data Management Office's Personal Data Protection Regulations. The register shall include, at minimum, a record of any collection and/or processing of any personal data. Version History June 2020 Version 1.0 Dependencies - PDP.4: Data Lifecycle Management Personal Data Protection Domain References - National Data Management Office Personal Data Protection Regulation - The General Data Protection Regulation (2018) - California Consumer Privacy Act (2020) Personal Data Protection Domain References Domain Name Data Security and Protection Domain ID DS Control Name Information Security Governance Control Description Establishing a plan to employ the tools, personnel and business processes to ensure security is carried out sufficiently to meet the Entity's needs for data protection Control Description Control Name Information Security Architecture Control The fundamental concepts and properties of the Entity's systems to enable the purpose, context and guidance for making security design decisions Description Control Name Information Systems Design, Development and Testing Control Minimum Security provisions to include as components into a system during its development, testing and implementation Description Control Name Identity and Access Management Control Identity of users and information systems requesting to have access to the Entity's information assets Description Control Name Third Party Supplier Security Control Obligations to ensure Information Security requirements are reflected in the Entity's engagement of third-party suppliers Description Control Name Information Security Training, Awareness and Communication Control Description Implementation of a comprehensive Information Security training program designed to introduce personnel the Entity's security expectations and obligations Control Description Control Name Information Asset Management Control Documented and maintained inventory of information assets containing critical Entity data Description Control Name Information Security Operations Management Control Operational duties by the Entity and its personnel to monitor, assess and protect the Entity's information assets Description Control Name Information Security Incident Management Control Description Operational processes established by the Entity for detecting, managing, recording and analyzing potential security threats and breaches as a result of monitoring its Operations Control Description Control Name Information Security Risk Management Control Description The identification, review, response and corrective actions to be employed by the Entity to prevent or mitigate risks for occurrence, consequences, impact and exposure to the Entity Control Description Control Name Information Systems Continuity Management Control A framework for preserving and maintaining the confidentiality, integrity and availability of data in the event of an incident (ISO 27001) Description Version History June 2020 Version 1.0 Data Security Domain References - Data Security Standards (PCI Security Standards Council, 2013) - ISO/IEC 27017 Cloud Security Standards (ISO, draft) - ISO/ISC 27018 Handling of Personally Identifiable Information (ISO, draft) Data Security Domain References (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "PDP.4.3",
+      "description": "Personal Data Protection Risk Assessment s. The Entity shall conduct yearly risk assessments of the operation and use of its information systems containing personal data, including the collection and processing of personal data, and the storing and transmittal of personal data by each system - whether automated or manual. Risk assessment findings shall, at minimum, be: 1c. Documented 1d. Analyzed for impact and likelihood of occurrence 1e. Evaluated against current regulations obligations and criticality to resolve (Priority: P3)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    }
+  ]
+}

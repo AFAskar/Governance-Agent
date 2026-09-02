@@ -1,0 +1,117 @@
+{
+  "framework_name": "NDI",
+  "controls": [
+    {
+      "id": "DQ.OE.01",
+      "description": "Data Quality (DQ) index in GSB. This metric calculates the average DQ index of the entity’s data that is shared on GSB by applying DQ rules that span across the various DQ dimensions on all of the entity’s GSB attributes. Note that DQ rules and attributes have a many-to-many relationship. That is, a DQ rule can be applied to more than one attribute and there can be more than one rule associated with the same attribute. The notation “Rule, Attribute” will be used to refer to a pair of DQ rules applied to an attribute. A record is considered clean with regards to a DQ rule only if the attribute on which the DQ rule is applied passes the logic implemented within that rule. This metric aims to improve the quality of the data required for business process integration and ensure trust and seamless interoperability of data in Saudi Arabia (Priority: P0)",
+      "calculation": "“Attribute, Rule” index = (Total number of clean records for the attribute checked by the DQ rule / Total number of records checked by the DQ rule) * 100 The “Attribute, Rule” index is subsequently rolled up using weightages applied to both attributes and DQ rules to calculate the DQ index of the entity.",
+      "threshold": "90%",
+      "scale": "Unacceptable: <= 90% Low: (90%, 92%] Fair: (92%, 94%] Good: (94%, 96%] Excellent: (96%, 98%] Leader: > 98%"
+    },
+    {
+      "id": "DQ.OE.02",
+      "description": "Conformance to data standards in NDL. This metric calculates the conformance value of the entity’s data that is integrated in NDL by applying DQ rules that measure the degree of conformity of that data against the data standards published in the National Data Catalog (NDC). Entities have a large number of attributes integrated in NDL. However, only a sample of these attributes will be considered in the calculation of this index. Note that a DQ rule can be applied to more than one attribute. The notation “Rule, Attribute” will be used to refer to a pair of DQ rules applied to an attribute. A record is considered clean with regards to a DQ rule if the attribute on which the DQ rule is applied passes the logic implemented within that rule. This metric aims to improve the quality of the data within NDL, providing consumers with high-fidelity data for their decision-making needs. It also supports identifying and prioritizing the key areas of focus for improving the overall quality of national data assets (Priority: P0)",
+      "calculation": "“Attribute, Rule” index = (Total number of clean records for the attribute checked by the DQ rule / Total number of records checked by the DQ rule) * 100 The score for one system is calculated by rolling up the “Attribute, Rule” index scores for all the system’s attributes using weightages applied to both attributes and DQ rules. The final score for the entity is the average score of all the entity’s systems.",
+      "threshold": "70%",
+      "scale": "Unacceptable: ≤ 70% Low: (70%, 75%] Fair: (75%, 80%] Good: (80%, 85%] Excellent: (85%, 90%] Leader: > 90%"
+    },
+    {
+      "id": "DQ.OE.03",
+      "description": "Attributes Availability for Correction in Tawakkalna. This metric measures the percentage of user attributes published by the entity on the ‘Personal’ page in Tawakkalna under the respective sections that can be corrected through the platform, relative to the total number of attributes eligible for correction. The objective of this metric is to enhance data accuracy and user control by enabling individuals to correct their personal information through a unified, secure, and user-friendly interface. It supports the broader goal of improving service quality and advancing the digital transformation by promoting transparent and user-centric data management (Priority: P0)",
+      "calculation": "= Number of attributes made available by the entity for correction on the ‘Personal’ page in Tawakkalna, under the relevant sections / Total number of the entity’s attributes eligible for correction on the ‘Personal’ page in Tawakkalna, under the relevant sections * 100",
+      "threshold": "70%",
+      "scale": "Unacceptable: ≤ 70% Low: (70%, 75%] Fair: (75%, 80%] Good: (80%, 85%] Excellent: (85%, 90%] Leader: > 90%"
+    },
+    {
+      "id": "DQ.1.1",
+      "description": "Data Quality Prioritization. The Entity shall prioritize its data from the perspective of its importance for the Data Quality Management. The result of the prioritization shall be a ranked list of data to be followed when performing the Initial Data Quality Assessment. The 1st priority data shall include, at minimum, the Entity's master data (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.1.2",
+      "description": "Data Quality Plan. Based on the Entity’s defined Data Management and Personal Data Protection Strategy and Plan, the Entity shall create a Data Quality Plan to implement and manage activities aiming to improve quality of the Entity's data. The plan shall include, at minimum, the following: 1. Roadmap with the activities and key milestones for implementation of the Entity's Data Quality Management. The activities shall, at minimum, incorporate what is needed to achieve the specifications in this domain 2. Assignment of the required resources and budget to manage the implementation of Data Quality management (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.1.3",
+      "description": "Initial Data Quality Assessment. The Entity shall perform an Initial Data Quality Assessment of data included in the Entity's Data Quality Management scope. The assessment shall include, at minimum, the following: 1. Collection of business requirements for the Quality of data in the scope 2. Definition of Data Quality Rules based on collected business requirements 3. Performing of data profiling based on the defined Data Quality Rules 4. Reporting of identified Data Quality issues 5. Development of remediation plans for the identified Data Quality issues. The remediation plan shall include (but not limited to) the following: 5a. Root cause analysis to determine the cause of identified Data Quality issue 5b. Impact analysis to assess negative consequences and a level (local, enterprise- wide) of the issue Definition of the Data Quality targets set for .5c each of the issues, related to each Data Quality dimension, set depending on the issue’s context within the entity 5d. Definition of the options for resolving the issue's root cause, including a feasibility analysis 5e. Specification of data cleansing to be performed if Data Quality issue resolution does not correct data 6. Development of a roadmap and key milestones for a resolution of identified Data Quality issues. Version History June 2020 Version 1.0 Dependencies - DG.1: Strategy and Plan Domain Name Data Quality Domain ID DQ Control Name Data Quality Operations Control ID DQ.2 Control Description As part of the Data Quality Operations control, the Entity shall develop Data Quality Rules, monitor its Data Quality, establish and follow a clear process for resolving the identified Data Quality issues and implement the Data Quality tools Control Description Specification Specification Control Specification Priority (Priority: P1)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.2.1",
+      "description": "Data Quality Rules Development. The Entity shall develop and document Data Quality Rules for all data included in the Entity's Data Quality Management scope. The rules are used to define the business requirements for Data Quality. The definition of Data Quality Rules shall include, at minimum, the following: 1. Rule owner - the Data Quality Analyst responsible for the rule's definition 2. Business description of the requirement to be validated by the rule 3. Assignment of rules to each of the Data Quality dimensions related to the particular data being measured: 3a. Completeness (the degree to which the necessary data is available for use) 3b. Uniqueness (the degree to which data records are unique, and not duplicates) 3c. Timeliness (the degree to which data is up to date and available when it is needed) 3d. Validity (a degree of records' conformance to format, type and range) 3e. Accuracy (a degree to which data values align to real values) 3f. Consistency (a degree to which data is consistent across different sources) 4. List of data attributes that are validated by the defined rules 5. Metrics that are calculated when the rule is validated (e.g. for the rule validating the completeness of population of the data field, the metrics would be: a number of records where data is populated divided by a total number of records) 6. Escalation threshold that triggers a Data Quality alert for the rule (e.g. for the rule validating the completeness of the population of the data field, the escalation threshold could be the alert is triggered when below 90% of records have the field populated) (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.2.2",
+      "description": "Data Quality Monitoring. The Entity shall monitor and document the Entity's Data Quality on a regular basis based on the defined Data Quality rules. The Data Quality monitoring shall include, at minimum, the following: 1. Execution of existing Data Quality Rules according to defined triggering conditions (time schedule, event) 2. Reporting of the identified Data Quality issues to the Entity's data stewards and owners (at minimum, Business Data Steward and Business Data Executive) (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.2.3",
+      "description": "Data Quality Issues Resolution. The Entity shall establish and follow a clear process for resolving the identified Data Quality issues. The process shall include, at minimum, the following: 1. The development of a remediation plan. The remediation plan shall include, at minimum, the following: 1a. Root cause analysis to determine the cause of the identified Data Quality issue 1b. Impact analysis to assess negative consequences and level (local, enterprise- wide) of the issue 1c. Definition of the options for resolving the issue's root cause, including a feasibility analysis 1d. Specification of data cleansing to be performed if a Data Quality issue resolution does not correct data errors in the source system 2. The decision and rationale on the selected option to resolve the issue 3. The implementation status of the issue's resolution change 4. The review of the implemented change with a verification that the issue is resolved (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.2.4",
+      "description": "Data Quality Service Level Agreements. The Entity shall establish and implement Data Quality Service Level Agreements specifying the Entity's requirements for resolving the identified Data Quality issues. The Entity's Data Quality Service Level Agreement shall include, at minimum, the following: 1. Timelines and deadlines for the development of the remediation plan for the Data Quality issue 2. Timelines and deadlines for the implementation and the review of Data Quality changes 3. Escalation actions to be taken when the SLA is not met (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.2.5",
+      "description": "Data Quality Tools. The Entity shall implement tools supporting automation of the Entity's Data Quality Management. The tools shall cover, at minimum, the following capabilities: 1. Data profiling - statistical analysis of data on data attribute, table and cross-domain level 2. Data Quality rules management - a development and an execution of Data Quality rules 3. Data Quality issues management - an automation of workflows for reporting and resolving Data Quality issues. Version History June 2020 Version 1.0 Dependencies - DQ.1: Plan Domain Name Data Quality Domain ID DQ Control Name Performance Management Control ID DQ.3 Control Description As part of the Performance Management control, the Entity shall establish key performance indicators (KPIs) to measure and report on the Entity's Data Quality trends and on a performance of the Entity's Data Quality issues resolution process Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.3.1",
+      "description": "Data Quality Trends. The Entity shall establish key performance indicators (KPIs) to measure and report on the Entity's Data Quality trends against established targets. KPIs shall include, at minimum, the following: 1. Number of Data Quality issues reported based on the implemented Data Quality Rules 2. Number of Data Quality issues reported by the Data Catalog users 3. Number of the Data Quality Rules deployed (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.3.2",
+      "description": "Data Quality Issues Resolution. The Entity shall establish key performance indicators (KPIs) to measure and report on a performance of the Entity's Data Quality issues resolution process. KPIs shall include, at minimum, the following: 1. Number of resolved Data Quality issues vs reported Data Quality issues 2. Number of Data Quality issues resolved after the specified deadlines 3. Total time of the development of a Data Quality issue remediation plan 4. Total time of resolving a Data Quality issue (a root cause resolution implementation). Version History June 2020 Version 1.0 Dependencies - DQ.2: Data Quality Operations - DQ.4: Data Lifecycle Management Domain Name Data Quality Domain ID DQ Control Name Data Lifecycle Management Control ID DQ.4 Control Description As part of the Data Lifecycle Management control, the Entity shall publish Data Quality Rules, results of Data Quality monitoring and establish a process for reporting Data Quality issues Control Description Specification Specification Control Specification Priority (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.4.1",
+      "description": "Data Quality Checkpoints. The Entity shall have Business and IT Data Stewards conducting the Data Quality reviews within the Software Development Lifecycle (SDLC) process. All Data Quality issues identified during Data Quality reviews shall be remediated before moving to the production. The Data Quality review should include, at minimum, the following: 1. The Data Quality log of identified quality issues 2. The remediation plan for the identified issues (Priority: P2)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.4.2",
+      "description": "Data Quality Support. The Entity shall establish and follow a clear process enabling data users to report Data Quality issues to the Business Data Stewards. The process shall be implemented as a workflow in the Data Catalog automated tool and following the National Data Management Office's Data Catalog Guidelines (Priority: P3)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    },
+    {
+      "id": "DQ.4.3",
+      "description": "Data Quality Metadata. The Entity shall publish existing Data Quality Rules and results of Data Quality Monitoring as the metadata registered within the Data Catalog automated tool. The population of the metadata shall be executed according to the process defined in Metadata and Data Catalog Management domain. Version History June 2020 Version 1.0 Dependencies - DQ.1: Plan - DG.4: Data Management and Personal Data Protection Organization Data Quality Domain References - DAMA DMBOK 2nd Edition (Mosley and Brackett, 2017) - ISO 8000 - Modern Data Strategy ('Fleckenstein and Mike, 2019) - Data Strategy (Marr and Bernard, 2017) - Accenture Data Quality Strategy Playbook (Accenture, 2019) Data Quality Domain References Polic Guid y and elines Data Oper base ations Busi Conti ness nuity Perfor Manag mance ement Domain Name Data Operations Domain ID DO Control Name Plan Control ID DO.1 Control Description As part of the Plan control, the Entity shall create a Data Operation Plan, conduct Data Storage forecasts, prioritize its information systems based on their business criticality and establish and follow a process for evaluation and selection of the Database Management System Software Control Description Specification Specification Control Specification Priority (Priority: P3)",
+      "calculation": "",
+      "threshold": "",
+      "scale": ""
+    }
+  ]
+}
